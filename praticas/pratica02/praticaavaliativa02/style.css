@@ -57,13 +57,36 @@ font-size:30px;
   margin-left: 4px;
 }
 
+/*BARRA DE PESQUISA*/
+.search-bar{
+display:flex;
+gap:10px;
+}
+
+.search-bar input{
+padding:8px 12px;
+border-radius:8px;
+border:1px solid #333;
+width:220px;
+}
+
+.search-bar button{
+background:#d40000;
+color:white;
+border:none;
+padding:8px 15px;
+border-radius:8px;
+cursor:pointer;
+}
+
+
 /* NAVBAR */
 .navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #b80000;
-  padding: 0 32px;
+  background-color: #830000;
+  padding: 15px 40px;
   height: 44px;
 }
 

@@ -1,6 +1,18 @@
-export function App() {
-  <>
-  <h1>Bem vindo a primeira aula de React!</h1>,
-  <h2>Nossa aula de introdução!</h2>
- </>;
+import "./styles/theme.css";
+import "./styles/globals.css";
+import { Heading } from "./components/Heading";
+import { Timer } from 'lucide-react';
+
+export function App(){
+  return (
+    <>
+  <Heading>
+    Histórico
+    <button>
+      <Timer /> 
+    </button>
+  </Heading>
+   </>
+  );
 }
+

@@ -1,11 +1,10 @@
-import { createRoot } from "react-dom/client";
-createRoot(document.getElementById("root")!).render(
+import { createRoot } from 'react-dom/client'
+import { StrictMode } from 'react';
+import { App } from './App';
 
-  console.log("Olá mundo!"),
-createRoot(document.getElementById("root")!).render(
-
-  <>
-  <h1>Bem vindo a primeira aula de React!</h1>,
-  <h2>Nossa aula de introdução!</h2>
- </>,
+console.log('Olá mundo!')
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>
 );

@@ -25,3 +25,8 @@ body {
   background: var(--gray-900);
   color: var(--text-default);
 }
+
+.container-fluid {
+  width: 100%;
+}
+

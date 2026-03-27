@@ -1,18 +1,18 @@
-import "./styles/theme.css";
-import "./styles/globals.css";
-import { Heading } from "./components/Heading";
-import { Timer } from 'lucide-react';
+import { Container } from './components/Container';
+import { Heading } from './components/Heading';
 
-export function App(){
+export function App() {
   return (
     <>
-  <Heading>
-    Histórico
-    <button>
-      <Timer /> 
-    </button>
-  </Heading>
-   </>
+      {/* Seção 1 */}
+      <Container>
+        <Heading>Logo</Heading>
+      </Container>
+
+      {/* Seção 2 */}
+      <Container>
+        <Heading>Menu</Heading>
+      </Container>
+    </>
   );
 }
-

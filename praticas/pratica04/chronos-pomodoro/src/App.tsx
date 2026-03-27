@@ -1,17 +1,16 @@
-import { Container } from './components/Container';
 import { Heading } from './components/Heading';
+import { Container } from './components/Container';
+import { Logo } from './components/Logo';
 
 export function App() {
   return (
     <>
-      {/* Seção 1 */}
       <Container>
-        <Heading>Logo</Heading>
+        <Logo />
       </Container>
 
-      {/* Seção 2 */}
       <Container>
-        <Heading>Menu</Heading>
+        <Heading>MENU</Heading>
       </Container>
     </>
   );

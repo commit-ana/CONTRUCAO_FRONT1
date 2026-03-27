@@ -50,4 +50,10 @@ export function App() {
     </>
   );
 }
-<DefaultInput id="meuInput" type="text" />
+<DefaultInput
+  id="meuInput"
+  type="text"
+  labelText="task"
+  placeholder="Digite algo"
+  required
+/>

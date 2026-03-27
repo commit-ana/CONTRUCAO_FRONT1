@@ -2,7 +2,8 @@ import { Container } from './components/Container';
 import { Logo } from './components/Logo';
 import { Menu } from './components/Menu';
 import { CountDown } from './components/CountDown';
-import { DefaultInput } from './components/DefaultInput'
+import { DefaultInput } from './components/DefaultInput';
+import { Cycles } from './components/Cycles';
 
 import './styles/theme.css';
 import './styles/globals.css';
@@ -38,7 +39,7 @@ export function App() {
     {/* Grupo 3 */}
     <div className="formRow">
       <p>Ciclos</p>
-      <p>0 0 0 0 0 0 0</p>
+      <Cycles />
     </div>
 
     {/* Grupo 4 */}

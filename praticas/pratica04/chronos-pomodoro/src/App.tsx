@@ -47,9 +47,7 @@ export function App() {
     </div>
   </form>
 </Container>
-    </>
-  );
-}
+
 <DefaultInput
   id="meuInput"
   type="text"
@@ -57,3 +55,8 @@ export function App() {
   placeholder="Digite algo"
   required
 />
+  </>
+    
+  );
+}
+

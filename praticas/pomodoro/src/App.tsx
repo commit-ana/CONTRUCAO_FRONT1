@@ -1,4 +1,4 @@
-import { useState } from 'react'; // 1. Importando o Hook
+import { useState } from 'react'; // 1. Importação necessária
 import { Container } from './components/Container';
 import { Logo } from './components/Logo';
 import { Menu } from './components/Menu';
@@ -8,16 +8,15 @@ import { Cycles } from './components/Cycles';
 import { DefaultButton } from './components/DefaultButton';
 import { PlayCircleIcon, StopCircleIcon } from 'lucide-react';
 import { Footer } from './components/Footer';
-import { Heading } from './components/Heading'; // Certifique-se que este import funciona
+import { Heading } from './components/Heading';
 
 import './styles/theme.css';
 import './styles/globals.css';
 
 export function App() {
-  // 2. Criando o estado
   const [numero, setNumero] = useState(0);
 
-  // 3. Função para aumentar o número (usando prevState)
+
   function handleClick() {
     setNumero((prevState) => prevState + 1);
   }
@@ -33,8 +32,7 @@ export function App() {
       </Container>
 
       <Container>
-        {/* Adicionando o Heading para o teste da aula */}
-        <Heading>Contador: {numero}</Heading>
+        <Heading>Ciclos completados: {numero}</Heading>
         <CountDown />
       </Container>
 
@@ -44,8 +42,8 @@ export function App() {
             <DefaultInput
               id="meuInput"
               type="text"
-              // 4. O Input agora mostra o valor do estado em tempo real
-              labelText={`Task (Número: ${numero})`}
+              
+              labelText={`Tarefa (Ciclo atual: ${numero})`}
               placeholder="Digite algo"
             />
           </div>
@@ -59,12 +57,12 @@ export function App() {
           </div>
 
           <div className="formRow">
-            {/* O botão verde agora dispara o aumento do estado */}
-            <div onClick={handleClick}>
+            
+            <div onClick={handleClick} style={{ cursor: 'pointer' }}>
               <DefaultButton icon={<PlayCircleIcon />} />
             </div>
             
-            {/* Seu botão vermelho continua aqui, intocado! */}
+            
             <DefaultButton icon={<StopCircleIcon />} color="red" />
           </div>
         </form>

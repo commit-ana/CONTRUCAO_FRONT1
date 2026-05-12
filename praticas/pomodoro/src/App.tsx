@@ -1,7 +1,27 @@
 import { Home } from './pages/Home';
+import { useState } from 'react';
+import type { TaskStateModel } from './models/TaskStateModel';
 import './styles/theme.css';
-import './styles/globals.css'; // verifique se é global.css ou globals.css no seu projeto
+import './styles/globals.css';
+
+// 1. Definimos o valor inicial da nossa aplicação
+const initialState: TaskStateModel = {
+  tasks: [],
+  secondsRemaining: 0,
+  formattedSecondsRemaining: '00:00',
+  activeTask: null,
+  currentCycle: 0,
+  config: {
+    workTime: 25,
+    shortBreakTime: 5,
+    longBreakTime: 15,
+  },
+};
 
 export function App() {
-  return <Home />;
+  // 2. Iniciamos o estado global
+  const [state, setState] = useState(initialState);
+
+  // 3. Repassamos o estado e a função que altera o estado para o componente filho
+  return <Home state={state} setState={setState} />;
 }

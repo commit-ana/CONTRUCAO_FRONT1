@@ -1,52 +1,54 @@
-import { HistoryIcon, HouseIcon, SettingsIcon, SunIcon } from 'lucide-react';
+import {
+  HistoryIcon,
+  HouseIcon,
+  MoonIcon,
+  SettingsIcon,
+  SunIcon,
+} 
+
+from 'lucide-react';
 import styles from './styles.module.css';
-import { useState, useEffect } from 'react'; 
+import { useState, useEffect } from 'react';
 
 type AvailableThemes = 'dark' | 'light';
 
 export function Menu() {
-  const [theme, setTheme] = useState<AvailableThemes>('dark');
+  const [theme, setTheme] = useState<AvailableThemes>(() => {
+    const storageTheme = localStorage.getItem('theme') as AvailableThemes;
+    return storageTheme || 'dark';
+  });
 
-  
+  const nextThemeIcon = {
+    dark: <SunIcon />,
+    light: <MoonIcon />,
+  };
+
   function handleThemeChange(
     event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
   ) {
     event.preventDefault();
+    // Apenas a troca de tema aqui!
     setTheme((prevTheme) => (prevTheme === 'dark' ? 'light' : 'dark'));
   }
 
   useEffect(() => {
-
     document.documentElement.setAttribute('data-theme', theme);
-
-    return () => {
-      console.log('Limpando efeito colateral anterior...');
-    };
-  }, [theme]); 
+    localStorage.setItem('theme', theme);
+  }, [theme]);
 
   return (
     <nav className={styles.menu}>
-     
-      <a className={styles.menuLink} href='#' aria-label='Ir para a Home' title='Ir para a Home'>
-        <HouseIcon />
-      </a>
-
-      <a className={styles.menuLink} href='#' aria-label='Ver Histórico' title='Ver Histórico'>
-        <HistoryIcon />
-      </a>
-
-      <a className={styles.menuLink} href='#' aria-label='Configurações' title='Configurações'>
-        <SettingsIcon />
-      </a>
+      <a className={styles.menuLink} href='#' title='Home'><HouseIcon /></a>
+      <a className={styles.menuLink} href='#' title='Histórico'><HistoryIcon /></a>
+      <a className={styles.menuLink} href='#' title='Configs'><SettingsIcon /></a>
 
       <a
         className={styles.menuLink}
         href='#'
         aria-label='Mudar Tema'
-        title='Mudar Tema'
         onClick={handleThemeChange}
       >
-        <SunIcon />
+        {nextThemeIcon[theme]}
       </a>
     </nav>
   );

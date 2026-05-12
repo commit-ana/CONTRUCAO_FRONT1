@@ -19,3 +19,4 @@ export type TaskStateModel = {
     longBreakTime: number; // Descanso longo (ex: 15)
   };
 };
+

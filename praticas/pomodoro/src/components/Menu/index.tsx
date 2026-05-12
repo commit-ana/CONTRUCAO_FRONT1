@@ -2,64 +2,55 @@ import { HistoryIcon, HouseIcon, SettingsIcon, SunIcon } from 'lucide-react';
 import styles from './styles.module.css';
 import { useState } from 'react';
 
-// 1. Tipagem Estrita: Garante que só aceitamos esses dois valores
 type AvailableThemes = 'dark' | 'light';
 
 export function Menu() {
-  // 2. Estado local para controlar o tema
   const [theme, setTheme] = useState<AvailableThemes>('dark');
 
-  // 3. Função com tipagem correta de evento e preventDefault
   function handleThemeChange(
     event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
   ) {
-    event.preventDefault(); // Impede o recarregamento da página (comportamento padrão do <a>)
-    
-    // Lógica simples para alternar (Veremos a troca real de cores na próxima aula)
-    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
-    
-    console.log('Tema alterado para:', theme);
+    event.preventDefault();
+
+    // 1. Lógica de inversão de tema usando callback (Jeito Seguro)
+    setTheme((prevTheme) => {
+      const nextTheme = prevTheme === 'dark' ? 'light' : 'dark';
+      
+      // ❌ NÃO FAÇA ISSO: document.documentElement.setAttribute('data-theme', nextTheme);
+      // Alterar o DOM aqui dentro é uma má prática pois esta função deve ser pura.
+      
+      return nextTheme;
+    });
+
+    // ❌ SE FIZER ISSO AQUI: document.documentElement.setAttribute('data-theme', theme);
+    // O valor de 'theme' ainda será o ANTIGO, por isso o tema fica atrasado um clique.
   }
 
   return (
     <nav className={styles.menu}>
-      {/* Texto para validar se o estado está mudando */}
-      <span style={{ color: 'var(--gray-800)' }}>Tema: {theme}</span>
+      {/* Visualização para teste */}
+      <span style={{ color: 'var(--gray-800)', fontSize: '12px' }}>
+        Estado: {theme}
+      </span>
 
-      <a
-        className={styles.menuLink}
-        href='#'
-        aria-label='Ir para a Home' // Acessibilidade
-        title='Ir para a Home'       // UX: Tooltip ao passar o mouse
-      >
+      <a className={styles.menuLink} href='#' aria-label='Ir para a Home' title='Ir para a Home'>
         <HouseIcon />
       </a>
 
-      <a
-        className={styles.menuLink}
-        href='#'
-        aria-label='Ver Histórico'
-        title='Ver Histórico'
-      >
+      <a className={styles.menuLink} href='#' aria-label='Ver Histórico' title='Ver Histórico'>
         <HistoryIcon />
       </a>
 
-      <a
-        className={styles.menuLink}
-        href='#'
-        aria-label='Configurações'
-        title='Configurações'
-      >
+      <a className={styles.menuLink} href='#' aria-label='Configurações' title='Configurações'>
         <SettingsIcon />
       </a>
 
-      {/* Botão de Alternância */}
       <a
         className={styles.menuLink}
         href='#'
         aria-label='Mudar Tema'
         title='Mudar Tema'
-        onClick={handleThemeChange} // Evento de clique
+        onClick={handleThemeChange}
       >
         <SunIcon />
       </a>

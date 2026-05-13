@@ -16,14 +16,29 @@ export function MainForm() {
   const nextCycle = getNextCycle(state.currentCycle);
   const nextCycleType = getNextCycleType(nextCycle); // Descobre se é foco ou pausa
 
-  function handleInterruptTask() {
-    setState(prevState => ({
+function handleInterruptTask() {
+  setState(prevState => {
+    return {
       ...prevState,
-      activeTask: null, // Remove a tarefa ativa
-      secondsRemaining: 0, // Zera os segundos totais
-      formattedSecondsRemaining: '00:00', // Zera o texto do relógio
-    }));
-  }
+      activeTask: null,
+      secondsRemaining: 0,
+      formattedSecondsRemaining: '00:00',
+
+      // 1. Percorremos todas as tarefas antigas para gerar um novo array
+      tasks: prevState.tasks.map(task => {
+        // 2. Verificamos se existe uma tarefa ativa E se o ID bate com a tarefa atual do loop
+        if (prevState.activeTask && prevState.activeTask.id === task.id) {
+          // 3. Se achamos a nossa tarefa alvo, retornamos uma cópia dela (...task)
+          // mas sobrescrevendo o campo interruptDate com a data/hora atual.
+          return { ...task, interruptDate: new Date() };
+        }
+
+        // 4. Se não for a tarefa alvo, devolvemos ela intacta para o novo array
+        return task;
+      }),
+    };
+  });
+}
 
   function handleCreateNewTask(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();

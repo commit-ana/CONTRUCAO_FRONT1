@@ -1,20 +1,23 @@
-import { PlayCircleIcon, StopCircleIcon } from 'lucide-react';
 import { useRef } from 'react';
+import { PlayCircleIcon, StopCircleIcon } from 'lucide-react';
 import { Cycles } from '../Cycles';
 import { DefaultButton } from '../DefaultButton';
 import { DefaultInput } from '../DefaultInput';
 import { useTaskContext } from '../../contexts/TaskContext/useTaskContext';
-import type { TaskModel } from '../../models/TaskModel'; 
+import { getNextCycle } from '../../utils/getNextCycle'; // Importando a lógica
+import type { TaskModel } from '../../models/TaskModel';
 
 export function MainForm() {
-  const { setState } = useTaskContext();
+  const { state, setState } = useTaskContext();
   const taskNameInput = useRef<HTMLInputElement>(null);
+
+  // A MÁGICA: Sempre calculamos o valor do próximo ciclo com base no que está no estado
+  const nextCycle = getNextCycle(state.currentCycle);
 
   function handleCreateNewTask(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    // 1. Validação de Segurança e Trim
-    if (taskNameInput.current === null) return;
+    if (!taskNameInput.current) return;
     const taskName = taskNameInput.current.value.trim();
 
     if (!taskName) {
@@ -22,45 +25,38 @@ export function MainForm() {
       return;
     }
 
-    // 2. Montando o Objeto da Tarefa
     const newTask: TaskModel = {
       id: Date.now().toString(),
       name: taskName,
       startDate: new Date(),
       completeDate: null,
       interruptDate: null,
-      duration: 1, // Temporário: 1 minuto
+      duration: 1, // Por enquanto fixo
       type: 'workTime',
     };
+
     const secondsRemaining = newTask.duration * 60;
 
-    // 3. Salvando no Estado Global
-    setState(prevState => {
-      return {
-        ...prevState,
-        config: { ...prevState.config },
-        activeTask: newTask,
-        currentCycle: 1,
-        secondsRemaining,
-        formattedSecondsRemaining: '01:00', // Ajustado para refletir o 1 min
-        tasks: [...prevState.tasks, newTask], // Imutabilidade: novo array com a nova task
-      };
-    });
+    setState(prevState => ({
+      ...prevState,
+      activeTask: newTask,
+      currentCycle: nextCycle, // Usando o ciclo que calculamos lá em cima!
+      secondsRemaining,
+      tasks: [...prevState.tasks, newTask],
+    }));
 
-    // Limpa o input após criar
     taskNameInput.current.value = '';
   }
 
   return (
     <form onSubmit={handleCreateNewTask} className='form'>
       <div className='formRow'>
-        <DefaultInput
-          labelText='task'
-          id='meuInput'
-          type='text'
-          placeholder='Qual a tarefa de agora?'
-          ref={taskNameInput}
-        />
+        <DefaultInput labelText='task' id='meuInput' type='text' placeholder='Tarefa' ref={taskNameInput} />
+      </div>
+
+      <div className='formRow'>
+        {/* Agora você pode usar o nextCycle aqui para mostrar algo dinâmico se quiser */}
+        <p>Próximo ciclo será o: {nextCycle}</p>
       </div>
 
       <div className='formRow'>
@@ -71,8 +67,6 @@ export function MainForm() {
         <DefaultButton icon={<PlayCircleIcon />} />
         <DefaultButton icon={<StopCircleIcon />} color='red' />
       </div>
-
-      
     </form>
   );
 }

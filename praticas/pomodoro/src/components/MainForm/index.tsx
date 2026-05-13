@@ -27,15 +27,17 @@ export function MainForm() {
       return;
     }
 
-    const newTask: TaskModel = {
-      id: Date.now().toString(),
-      name: taskName,
-      startDate: new Date(),
-      completeDate: null,
-      interruptDate: null,
-      duration: 1, // Calma, vamos buscar das configs na próxima aula!
-      type: nextCycleType, // USA O TIPO QUE CALCULAMOS
-    };
+const newTask: TaskModel = {
+  id: Date.now().toString(),
+  name: taskName,
+  startDate: new Date(),
+  completeDate: null,
+  interruptDate: null,
+  // 🔴 ANTES: duration: 1,
+  // 🟢 AGORA: Pegamos a duração certa baseada no tipo do ciclo!
+  duration: state.config[nextCycleType],
+  type: nextCycleType,
+};
 
     const secondsRemaining = newTask.duration * 60;
 

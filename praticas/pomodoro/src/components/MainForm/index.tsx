@@ -1,8 +1,8 @@
-import { PlayCircleIcon } from 'lucide-react';
+import { PlayCircleIcon, StopCircleIcon } from 'lucide-react';
 import { Cycles } from '../Cycles';
 import { DefaultButton } from '../DefaultButton';
 import { DefaultInput } from '../DefaultInput';
-import { useTaskContext } from '../../contexts/TaskContext';
+import { useTaskContext } from '../../contexts/TaskContext/useTaskContext';
 
 export function MainForm() {
   // Puxamos a função 'setState' do contexto
@@ -24,12 +24,7 @@ export function MainForm() {
   }
 
   return (
-    <form onSubmit={handleCreateNewTask} className='form' action=''>
-      {/* Botão de teste */}
-      <button onClick={handleClick} type='button'>
-        Clicar
-      </button>
-
+    <form>
       <div className='formRow'>
         <DefaultInput
           labelText='task'
@@ -49,6 +44,7 @@ export function MainForm() {
 
       <div className='formRow'>
         <DefaultButton icon={<PlayCircleIcon />} />
+        <DefaultButton icon={<StopCircleIcon />} color='red' />
       </div>
     </form>
   );

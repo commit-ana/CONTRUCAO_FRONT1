@@ -4,15 +4,17 @@ import { Cycles } from '../Cycles';
 import { DefaultButton } from '../DefaultButton';
 import { DefaultInput } from '../DefaultInput';
 import { useTaskContext } from '../../contexts/TaskContext/useTaskContext';
-import { getNextCycle } from '../../utils/getNextCycle'; // Importando a lógica
+import { getNextCycle } from '../../utils/getNextCycle';
+import { getNextCycleType } from '../../utils/getNextCycleType'; // Novo import!
 import type { TaskModel } from '../../models/TaskModel';
 
 export function MainForm() {
   const { state, setState } = useTaskContext();
   const taskNameInput = useRef<HTMLInputElement>(null);
 
-  // A MÁGICA: Sempre calculamos o valor do próximo ciclo com base no que está no estado
+  // ENGATILHANDO A PRÓXIMA JOGADA:
   const nextCycle = getNextCycle(state.currentCycle);
+  const nextCycleType = getNextCycleType(nextCycle); // Descobre se é foco ou pausa
 
   function handleCreateNewTask(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -31,8 +33,8 @@ export function MainForm() {
       startDate: new Date(),
       completeDate: null,
       interruptDate: null,
-      duration: 1, // Por enquanto fixo
-      type: 'workTime',
+      duration: 1, // Calma, vamos buscar das configs na próxima aula!
+      type: nextCycleType, // USA O TIPO QUE CALCULAMOS
     };
 
     const secondsRemaining = newTask.duration * 60;
@@ -40,7 +42,7 @@ export function MainForm() {
     setState(prevState => ({
       ...prevState,
       activeTask: newTask,
-      currentCycle: nextCycle, // Usando o ciclo que calculamos lá em cima!
+      currentCycle: nextCycle,
       secondsRemaining,
       tasks: [...prevState.tasks, newTask],
     }));
@@ -51,12 +53,12 @@ export function MainForm() {
   return (
     <form onSubmit={handleCreateNewTask} className='form'>
       <div className='formRow'>
-        <DefaultInput labelText='task' id='meuInput' type='text' placeholder='Tarefa' ref={taskNameInput} />
+        <DefaultInput labelText='task' id='meuInput' type='text' placeholder='O que vamos fazer?' ref={taskNameInput} />
       </div>
 
       <div className='formRow'>
-        {/* Agora você pode usar o nextCycle aqui para mostrar algo dinâmico se quiser */}
-        <p>Próximo ciclo será o: {nextCycle}</p>
+        {/* DICA: Agora você pode mostrar visualmente o que vem a seguir! */}
+        <p>Ciclo {nextCycle}: {nextCycleType === 'workTime' ? 'Foco' : 'Pausa'}</p>
       </div>
 
       <div className='formRow'>
@@ -65,8 +67,9 @@ export function MainForm() {
 
       <div className='formRow'>
         <DefaultButton icon={<PlayCircleIcon />} />
-        <DefaultButton icon={<StopCircleIcon />} color='red' />
+        <DefaultButton icon={<StopCircleIcon />} color='red'/>
       </div>
+
     </form>
   );
 }

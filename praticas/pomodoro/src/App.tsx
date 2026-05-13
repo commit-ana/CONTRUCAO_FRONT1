@@ -1,7 +1,8 @@
- import { Home } from './pages/Home';
+import { Home } from './pages/Home';
 import { useState } from 'react';
 import type { TaskStateModel } from './models/TaskStateModel';
 import { TaskContextProvider } from './contexts/TaskContext';
+
 import './styles/theme.css';
 import './styles/globals.css';
 
@@ -19,15 +20,42 @@ const initialState: TaskStateModel = {
 };
 
 export function App() {
+  // O estado REAL ainda está aqui, mas o Provider não está usando ele (ainda!)
   const [state, setState] = useState(initialState);
 
-  // Abraçamos a Home com o Provider!
   return (
+    // Usamos o nosso componente limpo e encapsulado
     <TaskContextProvider>
       <Home />
     </TaskContextProvider>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

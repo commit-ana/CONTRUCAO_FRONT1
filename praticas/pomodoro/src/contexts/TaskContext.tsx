@@ -1,49 +1,48 @@
 import { createContext, useContext } from 'react';
-import type { TaskStateModel } from '../models/TaskStateModel';
+import type { TaskStateModel } from '../../src/models/TaskStateModel';
 
-// 1. Tipagem do Contexto: Ele terá o `state` e a função `setState`
-export type TaskContextProps = {
+// 1. Trazemos o initialState para cá
+const initialState: TaskStateModel = {
+  tasks: [],
+  secondsRemaining: 0,
+  formattedSecondsRemaining: '00:00',
+  activeTask: null,
+  currentCycle: 0,
+  config: { workTime: 25, shortBreakTime: 5, longBreakTime: 15 },
+};
+
+type TaskContextProps = {
   state: TaskStateModel;
   setState: React.Dispatch<React.SetStateAction<TaskStateModel>>;
 };
 
-// 2. Criando o Valor Inicial "Fake"
-// (Isso é usado apenas se tentarmos acessar o contexto FORA do Provider, o que não faremos)
-const initialContextValue: TaskContextProps = {
-  state: {
-    tasks: [],
-    secondsRemaining: 0,
-    formattedSecondsRemaining: '00:00',
-    activeTask: null,
-    currentCycle: 0,
-    config: { workTime: 25, shortBreakTime: 5, longBreakTime: 15 },
-  },
-  setState: () => {}, // Função vazia de placeholder
+const initialContextValue = {
+  state: initialState,
+  setState: () => {}, // Função vazia provisória
 };
 
-// 3. Criando o Contexto em si
+// 2. Criação do Contexto
 export const TaskContext = createContext<TaskContextProps>(initialContextValue);
 
-// ==========================================
-
-// 4. Criando o Componente Provider (O "Pai de Todos")
+// ==============================================================
+// 3. NOSSO COMPONENTE PROVIDER CUSTOMIZADO
+// ==============================================================
 type TaskContextProviderProps = {
   children: React.ReactNode;
 };
 
 export function TaskContextProvider({ children }: TaskContextProviderProps) {
-  // Por enquanto, vamos passar o valor falso (initialContextValue)
-  // Na próxima aula, traremos o `useState` REAL para cá!
+  // O valor passado aqui na prop "value" é o que de fato vai para a aplicação!
   return (
-    <TaskContext.Provider value={initialContextValue}>
+    <TaskContext.Provider value={{ ...initialContextValue }}>
       {children}
     </TaskContext.Provider>
   );
 }
 
-// ==========================================
-
-// 5. Criando o Custom Hook (Para os "Filhos" usarem)
+// ==============================================================
+// 4. NOSSO CUSTOM HOOK (Atalho para os filhos)
+// ==============================================================
 export function useTaskContext() {
   return useContext(TaskContext);
 }

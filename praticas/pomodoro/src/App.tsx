@@ -1,8 +1,9 @@
-import { Home } from './pages/Home';
-import './styles/theme.css';
-import './styles/globals.css';
+ import { Home } from './pages/Home';
 import { useState } from 'react';
 import type { TaskStateModel } from './models/TaskStateModel';
+import { TaskContextProvider } from './contexts/TaskContext';
+import './styles/theme.css';
+import './styles/globals.css';
 
 const initialState: TaskStateModel = {
   tasks: [],
@@ -20,6 +21,48 @@ const initialState: TaskStateModel = {
 export function App() {
   const [state, setState] = useState(initialState);
 
-  // Removidas as props state e setState
-  return <Home />;
+  // Abraçamos a Home com o Provider!
+  return (
+    <TaskContextProvider>
+      <Home />
+    </TaskContextProvider>
+  );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

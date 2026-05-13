@@ -16,6 +16,15 @@ export function MainForm() {
   const nextCycle = getNextCycle(state.currentCycle);
   const nextCycleType = getNextCycleType(nextCycle); // Descobre se é foco ou pausa
 
+  function handleInterruptTask() {
+    setState(prevState => ({
+      ...prevState,
+      activeTask: null, // Remove a tarefa ativa
+      secondsRemaining: 0, // Zera os segundos totais
+      formattedSecondsRemaining: '00:00', // Zera o texto do relógio
+    }));
+  }
+
   function handleCreateNewTask(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -27,16 +36,16 @@ export function MainForm() {
       return;
     }
 
-const newTask: TaskModel = {
-  id: Date.now().toString(),
-  name: taskName,
-  startDate: new Date(),
-  completeDate: null,
-  interruptDate: null,
-  // 🟢 A mágica acontece aqui:
-  duration: state.config[nextCycleType], 
-  type: nextCycleType,
-};
+    const newTask: TaskModel = {
+      id: Date.now().toString(),
+      name: taskName,
+      startDate: new Date(),
+      completeDate: null,
+      interruptDate: null,
+      // 🟢 A mágica acontece aqui:
+      duration: state.config[nextCycleType],
+      type: nextCycleType,
+    };
 
     const secondsRemaining = newTask.duration * 60;
 
@@ -53,6 +62,8 @@ const newTask: TaskModel = {
 
   return (
     <form onSubmit={handleCreateNewTask} className='form'>
+
+      
 
       <div className='formRow'>
   <p>Próximo intervalo é de {state.config[nextCycleType]}min</p>
@@ -89,23 +100,30 @@ const newTask: TaskModel = {
 
 
       <div className='formRow'>
-        {!state.activeTask ? (
+        {/* Renderiza apenas se NÃO houver tarefa ativa */}
+        {!state.activeTask && (
           <DefaultButton
             aria-label='Iniciar nova tarefa'
             title='Iniciar nova tarefa'
             type='submit'
             icon={<PlayCircleIcon />}
           />
-        ) : (
+        )}
+
+        {/* Renderiza apenas se HOUVER tarefa ativa */}
+        {!!state.activeTask && (
           <DefaultButton
             aria-label='Interromper tarefa atual'
             title='Interromper tarefa atual'
             type='button'
             color='red'
             icon={<StopCircleIcon />}
+            onClick={handleInterruptTask}
+            key='botao_button' // A chave mágica que evita a confusão do React!
           />
         )}
       </div>
     </form>
   );
 }
+

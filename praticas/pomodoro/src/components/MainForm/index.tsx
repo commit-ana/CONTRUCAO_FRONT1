@@ -58,6 +58,10 @@ const newTask: TaskModel = {
       </div>
 
       <div className='formRow'>
+  <p>Próximo intervalo é de {state.config[nextCycleType]}min</p>
+</div>
+
+      <div className='formRow'>
         {/* DICA: Agora você pode mostrar visualmente o que vem a seguir! */}
         <p>Ciclo {nextCycle}: {nextCycleType === 'workTime' ? 'Foco' : 'Pausa'}</p>
       </div>
@@ -65,6 +69,13 @@ const newTask: TaskModel = {
       <div className='formRow'>
         <Cycles />
       </div>
+
+      {/* Regra: Se o ciclo for 0, não mostra nada. Se for > 0, mostra as bolinhas. */}
+{state.currentCycle > 0 && (
+  <div className='formRow'>
+    <Cycles />
+  </div>
+)}
 
       <div className='formRow'>
         <DefaultButton icon={<PlayCircleIcon />} />

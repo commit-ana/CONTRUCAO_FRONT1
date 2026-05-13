@@ -53,12 +53,22 @@ const newTask: TaskModel = {
 
   return (
     <form onSubmit={handleCreateNewTask} className='form'>
-      <div className='formRow'>
-        <DefaultInput labelText='task' id='meuInput' type='text' placeholder='O que vamos fazer?' ref={taskNameInput} />
-      </div>
 
       <div className='formRow'>
   <p>Próximo intervalo é de {state.config[nextCycleType]}min</p>
+</div>
+
+<div className='formRow'>
+  <DefaultInput
+    labelText='task'
+    id='meuInput'
+    type='text'
+    placeholder='Qual tarefa vamos focar agora?'
+    ref={taskNameInput}
+    
+    // Se activeTask existir (não for null), disabled será true!
+    disabled={!!state.activeTask} 
+  />
 </div>
 
       <div className='formRow'>

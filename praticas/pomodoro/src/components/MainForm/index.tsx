@@ -2,29 +2,16 @@ import { PlayCircleIcon, StopCircleIcon } from 'lucide-react';
 import { Cycles } from '../Cycles';
 import { DefaultButton } from '../DefaultButton';
 import { DefaultInput } from '../DefaultInput';
-import { useTaskContext } from '../../contexts/TaskContext/useTaskContext';
 
 export function MainForm() {
-  // Puxamos a função 'setState' do contexto
-  const { setState } = useTaskContext();
-
   function handleCreateNewTask(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
     console.log('DEU CERTO');
   }
 
-  // Função de teste para atualizar o estado global
-  function handleClick() {
-    setState(prevState => {
-      return {
-        ...prevState,
-        formattedSecondsRemaining: '21:00', // Força o relógio a mostrar 21:00
-      };
-    });
-  }
-
   return (
-    <form>
+    <form onSubmit={handleCreateNewTask} className='form' action=''>
       <div className='formRow'>
         <DefaultInput
           labelText='task'

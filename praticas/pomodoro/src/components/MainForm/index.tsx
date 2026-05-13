@@ -87,11 +87,25 @@ const newTask: TaskModel = {
   </div>
 )}
 
-      <div className='formRow'>
-        <DefaultButton icon={<PlayCircleIcon />} />
-        <DefaultButton icon={<StopCircleIcon />} color='red'/>
-      </div>
 
+      <div className='formRow'>
+        {!state.activeTask ? (
+          <DefaultButton
+            aria-label='Iniciar nova tarefa'
+            title='Iniciar nova tarefa'
+            type='submit'
+            icon={<PlayCircleIcon />}
+          />
+        ) : (
+          <DefaultButton
+            aria-label='Interromper tarefa atual'
+            title='Interromper tarefa atual'
+            type='button'
+            color='red'
+            icon={<StopCircleIcon />}
+          />
+        )}
+      </div>
     </form>
   );
 }

@@ -1,11 +1,10 @@
-import type { TaskStateModel } from './TaskStateModel'; // Importa o IRMÃO
-
+// src/models/TaskModel.ts
 export type TaskModel = {
   id: string;
   name: string;
+  startDate: Date;
+  completeDate: Date | null;
+  interruptDate: Date | null;
   duration: number;
-  startDate: number;
-  completeDate: number | null;
-  interruptDate: number | null;
-  type: keyof TaskStateModel['config']; // Usa a chave do outro arquivo
+  type: 'workTime' | 'shortBreakTime' | 'longBreakTime';
 };

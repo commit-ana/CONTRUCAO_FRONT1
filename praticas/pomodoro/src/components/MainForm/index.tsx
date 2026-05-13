@@ -5,7 +5,7 @@ import { DefaultButton } from '../DefaultButton';
 import { DefaultInput } from '../DefaultInput';
 import { useTaskContext } from '../../contexts/TaskContext/useTaskContext';
 import { getNextCycle } from '../../utils/getNextCycle';
-import { getNextCycleType } from '../../utils/getNextCycleType'; // Novo import!
+import { getNextCycleType } from '../../utils/getNextCycleType'; 
 import type { TaskModel } from '../../models/TaskModel';
 
 export function MainForm() {
@@ -33,9 +33,8 @@ const newTask: TaskModel = {
   startDate: new Date(),
   completeDate: null,
   interruptDate: null,
-  // 🔴 ANTES: duration: 1,
-  // 🟢 AGORA: Pegamos a duração certa baseada no tipo do ciclo!
-  duration: state.config[nextCycleType],
+  // 🟢 A mágica acontece aqui:
+  duration: state.config[nextCycleType], 
   type: nextCycleType,
 };
 

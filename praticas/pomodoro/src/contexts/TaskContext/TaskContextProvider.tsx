@@ -1,21 +1,22 @@
-import { useEffect, useState } from 'react';
-import { TaskContext } from './TaskContext'; // Ajuste o caminho se o seu arquivo se chamar index.tsx
+import { useEffect, useReducer } from 'react';
 import { initialTaskState } from './initialTaskState';
+import { taskReducer } from './taskReducer';
+import { TaskContext } from './TaskContext';
 
 type TaskContextProviderProps = {
   children: React.ReactNode;
 };
 
 export function TaskContextProvider({ children }: TaskContextProviderProps) {
-  const [state, setState] = useState(initialTaskState);
+  // A mágica acontece aqui: usamos o reducer que vamos criar a seguir
+  const [state, dispatch] = useReducer(taskReducer, initialTaskState);
 
-  // Monitor de estado ativo novamente para o console do navegador
   useEffect(() => {
     console.log(state);
   }, [state]);
 
   return (
-    <TaskContext.Provider value={{ state, setState }}>
+    <TaskContext.Provider value={{ state, dispatch }}>
       {children}
     </TaskContext.Provider>
   );

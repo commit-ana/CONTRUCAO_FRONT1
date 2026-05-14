@@ -5,114 +5,80 @@ import { DefaultButton } from '../DefaultButton';
 import { DefaultInput } from '../DefaultInput';
 import { useTaskContext } from '../../contexts/TaskContext/useTaskContext';
 import { getNextCycle } from '../../utils/getNextCycle';
-import { getNextCycleType } from '../../utils/getNextCycleType'; 
+import { getNextCycleType } from '../../utils/getNextCycleType';
+import { TaskActionTypes } from '../../contexts/TaskContext/TaskActions';
 import type { TaskModel } from '../../models/TaskModel';
 
 export function MainForm() {
-  const { state, setState } = useTaskContext();
+  const { state, dispatch } = useTaskContext();
   const taskNameInput = useRef<HTMLInputElement>(null);
 
-  // ENGATILHANDO A PRÓXIMA JOGADA:
+  // Calcula o próximo ciclo e o tipo de intervalo correspondente
   const nextCycle = getNextCycle(state.currentCycle);
-  const nextCycleType = getNextCycleType(nextCycle); // Descobre se é foco ou pausa
+  const nextCycleType = getNextCycleType(nextCycle);
 
-function handleInterruptTask() {
-  setState(prevState => {
-    return {
-      ...prevState,
-      activeTask: null,
-      secondsRemaining: 0,
-      formattedSecondsRemaining: '00:00',
-
-      // 1. Percorremos todas as tarefas antigas para gerar um novo array
-      tasks: prevState.tasks.map(task => {
-        // 2. Verificamos se existe uma tarefa ativa E se o ID bate com a tarefa atual do loop
-        if (prevState.activeTask && prevState.activeTask.id === task.id) {
-          // 3. Se achamos a nossa tarefa alvo, retornamos uma cópia dela (...task)
-          // mas sobrescrevendo o campo interruptDate com a data/hora atual.
-          return { ...task, interruptDate: new Date() };
-        }
-
-        // 4. Se não for a tarefa alvo, devolvemos ela intacta para o novo array
-        return task;
-      }),
-    };
-  });
-}
-
+  // Função disparada ao enviar o formulário (Iniciar Tarefa)
   function handleCreateNewTask(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    
+    if (taskNameInput.current === null) return;
 
-    if (!taskNameInput.current) return;
     const taskName = taskNameInput.current.value.trim();
-
+    
+    // Validação para não aceitar campo vazio
     if (!taskName) {
       alert('Digite o nome da tarefa');
       return;
     }
 
+    // Monta o objeto da nova tarefa
     const newTask: TaskModel = {
       id: Date.now().toString(),
       name: taskName,
       startDate: new Date(),
       completeDate: null,
       interruptDate: null,
-      // 🟢 A mágica acontece aqui:
       duration: state.config[nextCycleType],
       type: nextCycleType,
     };
 
-    const secondsRemaining = newTask.duration * 60;
+    // Despacha a ação de iniciar tarefa para o Reducer com a carga (payload)
+    dispatch({ type: TaskActionTypes.START_TASK, payload: newTask });
 
-    setState(prevState => ({
-      ...prevState,
-      activeTask: newTask,
-      currentCycle: nextCycle,
-      secondsRemaining,
-      tasks: [...prevState.tasks, newTask],
-    }));
-
+    // Limpa o campo de texto do input usando a referência
     taskNameInput.current.value = '';
+  }
+
+  // Função disparada ao clicar no botão de interromper
+  function handleInterruptTask() {
+    if (state.activeTask) {
+      dispatch({ type: TaskActionTypes.INTERRUPT_TASK, payload: state.activeTask });
+    }
   }
 
   return (
     <form onSubmit={handleCreateNewTask} className='form'>
-
-      
-
       <div className='formRow'>
-  <p>Próximo intervalo é de {state.config[nextCycleType]}min</p>
-</div>
-
-<div className='formRow'>
-  <DefaultInput
-    labelText='task'
-    id='meuInput'
-    type='text'
-    placeholder='Qual tarefa vamos focar agora?'
-    ref={taskNameInput}
-    
-    // Se activeTask existir (não for null), disabled será true!
-    disabled={!!state.activeTask} 
-  />
-</div>
-
-      <div className='formRow'>
-        {/* DICA: Agora você pode mostrar visualmente o que vem a seguir! */}
-        <p>Ciclo {nextCycle}: {nextCycleType === 'workTime' ? 'Foco' : 'Pausa'}</p>
+        <DefaultInput
+          labelText='task'
+          id='meuInput'
+          placeholder='Qual tarefa vamos focar agora?'
+          ref={taskNameInput}
+          // Bloqueia o input dinamicamente se houver uma tarefa rodando
+          disabled={!!state.activeTask}
+        />
       </div>
 
       <div className='formRow'>
-        <Cycles />
+        <p>Próximo intervalo: {state.config[nextCycleType]}min</p>
       </div>
 
-      {/* Regra: Se o ciclo for 0, não mostra nada. Se for > 0, mostra as bolinhas. */}
-{state.currentCycle > 0 && (
-  <div className='formRow'>
-    <Cycles />
-  </div>
-)}
-
+      {/* Renderiza os círculos indicadores se já tiver iniciado algum ciclo */}
+      {state.currentCycle > 0 && (
+        <div className='formRow'>
+          <Cycles />
+        </div>
+      )}
 
       <div className='formRow'>
         {/* Renderiza apenas se NÃO houver tarefa ativa */}
@@ -128,17 +94,16 @@ function handleInterruptTask() {
         {/* Renderiza apenas se HOUVER tarefa ativa */}
         {!!state.activeTask && (
           <DefaultButton
+            key="botao_stop_form" // Evita o bug de reaproveitamento do React
             aria-label='Interromper tarefa atual'
             title='Interromper tarefa atual'
-            type='button'
+            type='button' // Impede que o botão envie o formulário acidentalmente
             color='red'
             icon={<StopCircleIcon />}
             onClick={handleInterruptTask}
-            key='botao_button' // A chave mágica que evita a confusão do React!
           />
         )}
       </div>
     </form>
   );
 }
-

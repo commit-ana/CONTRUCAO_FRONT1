@@ -8,6 +8,7 @@ import { useTaskContext } from '../../contexts/TaskContext/useTaskContext';
 import { getNextCycle } from '../../utils/getNextCycle';
 import { getNextCycleType } from '../../utils/getNextCycleType';
 import { TaskActionTypes } from '../../contexts/TaskContext/TaskActions';
+import { TimerWorkerManager } from '../../workers/TimerWorkerManager'; // Importação do Manager
 import type { TaskModel } from '../../models/TaskModel';
 
 export function MainForm() {
@@ -39,32 +40,34 @@ export function MainForm() {
       type: nextCyleType,
     };
 
-    // 1. Atualiza o estado global via Reducer
+    // 1. Atualiza o Reducer
     dispatch({ type: TaskActionTypes.START_TASK, payload: newTask });
 
-    // 2. TESTE DO WEB WORKER (Prática 56)
-    // Usamos new URL para o Vite encontrar o arquivo corretamente
-    const worker = new Worker(
-      new URL('../../workers/timerWorker.js', import.meta.url),
-    );
+    // 2. USO DO SINGLETON (Prática 57)
+    // Em vez de 'new Worker', pedimos a instância única para o Manager
+    const timerWorkerManager = TimerWorkerManager.getInstance();
 
-    // Escuta as respostas do "assistente"
-    worker.onmessage = function (event) {
-      console.log('PRINCIPAL recebeu:', event.data);
-    };
+    // Testes de comunicação
+    timerWorkerManager.postMessage('FAVOR');
+    timerWorkerManager.postMessage('FALA_OI');
+    timerWorkerManager.postMessage('BLALBLA');
+    timerWorkerManager.postMessage('FECHAR');
 
-    // Envia comandos de teste
-    worker.postMessage('FAVOR');
-    worker.postMessage('FALA_OI');
-    worker.postMessage('BLALBLA');
-    worker.postMessage('FECHAR');
+    timerWorkerManager.onmessage(event => {
+      console.log('PRINCIPAL recebeu via Manager:', event.data);
+    });
 
-    // Limpa o input
     taskNameInput.current.value = '';
   }
 
   function handleInterruptTask() {
-    dispatch({ type: TaskActionTypes.INTERRUPT_TASK, payload: state.activeTask! });
+    if (!state.activeTask) {
+      return;
+    }
+    dispatch({ type: TaskActionTypes.INTERRUPT_TASK, payload: state.activeTask });
+    
+    // Opcional: interromper o worker imediatamente ao clicar em Stop
+    TimerWorkerManager.getInstance().terminate();
   }
 
   return (

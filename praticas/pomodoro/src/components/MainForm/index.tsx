@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 import { PlayCircleIcon, StopCircleIcon } from 'lucide-react';
 import { Cycles } from '../Cycles';
-import { Tips } from '../Tips'; // Importação do novo componente
+import { Tips } from '../Tips';
 import { DefaultButton } from '../DefaultButton';
 import { DefaultInput } from '../DefaultInput';
 import { useTaskContext } from '../../contexts/TaskContext/useTaskContext';
@@ -26,7 +26,6 @@ export function MainForm() {
       return;
     }
 
-    // Cálculos necessários para montar a nova tarefa com base no estado atual
     const nextCycle = getNextCycle(state.currentCycle);
     const nextCyleType = getNextCycleType(nextCycle);
 
@@ -36,23 +35,36 @@ export function MainForm() {
       startDate: new Date(),
       completeDate: null,
       interruptDate: null,
-      // Agora a duração vem dinamicamente das configurações
       duration: state.config[nextCyleType],
       type: nextCyleType,
     };
 
+    // 1. Atualiza o estado global via Reducer
     dispatch({ type: TaskActionTypes.START_TASK, payload: newTask });
 
+    // 2. TESTE DO WEB WORKER (Prática 56)
+    // Usamos new URL para o Vite encontrar o arquivo corretamente
+    const worker = new Worker(
+      new URL('../../workers/timerWorker.js', import.meta.url),
+    );
+
+    // Escuta as respostas do "assistente"
+    worker.onmessage = function (event) {
+      console.log('PRINCIPAL recebeu:', event.data);
+    };
+
+    // Envia comandos de teste
+    worker.postMessage('FAVOR');
+    worker.postMessage('FALA_OI');
+    worker.postMessage('BLALBLA');
+    worker.postMessage('FECHAR');
+
+    // Limpa o input
     taskNameInput.current.value = '';
   }
 
   function handleInterruptTask() {
-    if (!state.activeTask) return;
-
-    dispatch({
-      type: TaskActionTypes.INTERRUPT_TASK,
-      payload: state.activeTask,
-    });
+    dispatch({ type: TaskActionTypes.INTERRUPT_TASK, payload: state.activeTask! });
   }
 
   return (
@@ -67,7 +79,6 @@ export function MainForm() {
         />
       </div>
 
-      {/* Renderização das Dicas Contextuais */}
       <div className='formRow'>
         <Tips />
       </div>

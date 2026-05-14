@@ -1,22 +1,36 @@
-self.onmessage = function (event) {
-  // Esse log aparece no contexto do Worker no DevTools
-  console.log('WORKER recebeu:', event.data);
+let isRunning = false;
 
-  switch (event.data) {
-    case 'FAVOR': {
-      self.postMessage('Sim, posso fazer um favor');
-      break;
-    }
-    case 'FALA_OI': {
-      self.postMessage('OK: OI!');
-      break;
-    }
-    case 'FECHAR': {
-      self.postMessage('Tá bom, vou fechar');
-      self.close(); // Encerra o worker imediatamente
-      break;
-    }
-    default:
-      self.postMessage('Não entendi');
+self.onmessage = function (event) {
+  const state = event.data;
+
+  // 🛡️ TRAVA DE SEGURANÇA: Se não tiver tarefa ativa (null), ignora e não faz nada!
+  if (!state || !state.activeTask) {
+    return; 
   }
+
+  // Se já estiver rodando, não duplica o timer
+  if (isRunning) return;
+  isRunning = true;
+
+  const { activeTask, secondsRemaining } = state;
+
+  // Agora é seguro ler o startDate, porque sabemos que a activeTask existe!
+  const startTimestamp = new Date(activeTask.startDate).getTime();
+  const endDate = startTimestamp + (secondsRemaining * 1000);
+
+  function tick() {
+    const now = Date.now();
+    const countDownSeconds = Math.floor((endDate - now) / 1000);
+
+    if (countDownSeconds <= 0) {
+      self.postMessage(0);
+      isRunning = false;
+      return;
+    }
+
+    self.postMessage(countDownSeconds);
+    setTimeout(tick, 1000); // Roda de novo em 1 segundo
+  }
+
+  tick();
 };

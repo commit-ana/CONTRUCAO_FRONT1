@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { PlayCircleIcon, StopCircleIcon } from 'lucide-react';
 import { Cycles } from '../Cycles';
+import { Tips } from '../Tips'; // Importação do novo componente
 import { DefaultButton } from '../DefaultButton';
 import { DefaultInput } from '../DefaultInput';
 import { useTaskContext } from '../../contexts/TaskContext/useTaskContext';
@@ -13,47 +14,45 @@ export function MainForm() {
   const { state, dispatch } = useTaskContext();
   const taskNameInput = useRef<HTMLInputElement>(null);
 
-  // Calcula o próximo ciclo e o tipo de intervalo correspondente
-  const nextCycle = getNextCycle(state.currentCycle);
-  const nextCycleType = getNextCycleType(nextCycle);
-
-  // Função disparada ao enviar o formulário (Iniciar Tarefa)
   function handleCreateNewTask(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    
+
     if (taskNameInput.current === null) return;
 
     const taskName = taskNameInput.current.value.trim();
-    
-    // Validação para não aceitar campo vazio
+
     if (!taskName) {
       alert('Digite o nome da tarefa');
       return;
     }
 
-    // Monta o objeto da nova tarefa
+    // Cálculos necessários para montar a nova tarefa com base no estado atual
+    const nextCycle = getNextCycle(state.currentCycle);
+    const nextCyleType = getNextCycleType(nextCycle);
+
     const newTask: TaskModel = {
       id: Date.now().toString(),
       name: taskName,
       startDate: new Date(),
       completeDate: null,
       interruptDate: null,
-      duration: state.config[nextCycleType],
-      type: nextCycleType,
+      // Agora a duração vem dinamicamente das configurações
+      duration: state.config[nextCyleType],
+      type: nextCyleType,
     };
 
-    // Despacha a ação de iniciar tarefa para o Reducer com a carga (payload)
     dispatch({ type: TaskActionTypes.START_TASK, payload: newTask });
 
-    // Limpa o campo de texto do input usando a referência
     taskNameInput.current.value = '';
   }
 
-  // Função disparada ao clicar no botão de interromper
   function handleInterruptTask() {
-    if (state.activeTask) {
-      dispatch({ type: TaskActionTypes.INTERRUPT_TASK, payload: state.activeTask });
-    }
+    if (!state.activeTask) return;
+
+    dispatch({
+      type: TaskActionTypes.INTERRUPT_TASK,
+      payload: state.activeTask,
+    });
   }
 
   return (
@@ -64,16 +63,15 @@ export function MainForm() {
           id='meuInput'
           placeholder='Qual tarefa vamos focar agora?'
           ref={taskNameInput}
-          // Bloqueia o input dinamicamente se houver uma tarefa rodando
           disabled={!!state.activeTask}
         />
       </div>
 
+      {/* Renderização das Dicas Contextuais */}
       <div className='formRow'>
-        <p>Próximo intervalo: {state.config[nextCycleType]}min</p>
+        <Tips />
       </div>
 
-      {/* Renderiza os círculos indicadores se já tiver iniciado algum ciclo */}
       {state.currentCycle > 0 && (
         <div className='formRow'>
           <Cycles />
@@ -81,7 +79,6 @@ export function MainForm() {
       )}
 
       <div className='formRow'>
-        {/* Renderiza apenas se NÃO houver tarefa ativa */}
         {!state.activeTask && (
           <DefaultButton
             aria-label='Iniciar nova tarefa'
@@ -91,13 +88,12 @@ export function MainForm() {
           />
         )}
 
-        {/* Renderiza apenas se HOUVER tarefa ativa */}
         {!!state.activeTask && (
           <DefaultButton
-            key="botao_stop_form" // Evita o bug de reaproveitamento do React
+            key="botao_stop_form"
             aria-label='Interromper tarefa atual'
             title='Interromper tarefa atual'
-            type='button' // Impede que o botão envie o formulário acidentalmente
+            type='button'
             color='red'
             icon={<StopCircleIcon />}
             onClick={handleInterruptTask}

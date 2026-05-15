@@ -1,6 +1,7 @@
 import { useEffect, useReducer } from 'react';
 import { initialTaskState } from './initialTaskState';
-import { taskReducer } from './taskReducer';
+import { taskReducer } from '../../contexts/TaskContext/taskReducer';
+import { TaskActionTypes } from '../../contexts/TaskContext/TaskActions';
 import { TaskContext } from './TaskContext';
 import { TimerWorkerManager } from '../../workers/TimerWorkerManager';
 
@@ -13,18 +14,21 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
   const worker = TimerWorkerManager.getInstance();
 
   useEffect(() => {
-    worker.onmessage(e => {
+    worker.onmessage((e) => {
       const countDownSeconds = e.data;
-      console.log(countDownSeconds);
-
-      dispatch({ 
-        type: 'RESET_STATE', // 
-        payload: countDownSeconds 
-      });
+      console.log("⏱️ Worker enviou o tempo:", countDownSeconds);
+  
 
       if (countDownSeconds <= 0) {
-        console.log('Worker COMPLETED');
+        dispatch({
+          type: TaskActionTypes.COMPLETE_TASK,
+        });
         worker.terminate();
+      } else {
+        dispatch({
+          type: TaskActionTypes.COUNT_DOWN,
+          payload: { secondsRemaining: countDownSeconds },
+        });
       }
     });
   }, [worker]);

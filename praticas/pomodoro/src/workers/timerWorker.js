@@ -1,36 +1,42 @@
-let isRunning = false;
+let intervalId = null;
 
 self.onmessage = function (event) {
   const state = event.data;
 
-  // 🛡️ TRAVA DE SEGURANÇA: Se não tiver tarefa ativa (null), ignora e não faz nada!
+  // 1. Se não recebeu o estado ou não tem tarefa ativa, paramos o relógio
   if (!state || !state.activeTask) {
-    return; 
-  }
-
-  // Se já estiver rodando, não duplica o timer
-  if (isRunning) return;
-  isRunning = true;
-
-  const { activeTask, secondsRemaining } = state;
-
-  // Agora é seguro ler o startDate, porque sabemos que a activeTask existe!
-  const startTimestamp = new Date(activeTask.startDate).getTime();
-  const endDate = startTimestamp + (secondsRemaining * 1000);
-
-  function tick() {
-    const now = Date.now();
-    const countDownSeconds = Math.floor((endDate - now) / 1000);
-
-    if (countDownSeconds <= 0) {
-      self.postMessage(0);
-      isRunning = false;
-      return;
+    if (intervalId) {
+      clearInterval(intervalId);
+      intervalId = null;
     }
-
-    self.postMessage(countDownSeconds);
-    setTimeout(tick, 1000); // Roda de novo em 1 segundo
+    return;
   }
 
-  tick();
+  // 2. Extraímos a tarefa ativa de forma segura
+  const activeTask = state.activeTask;
+
+  // 3. Limpamos qualquer timer antigo para não duplicar
+  if (intervalId) {
+    clearInterval(intervalId);
+  }
+
+  // 4. Iniciamos o novo contador
+  intervalId = setInterval(() => {
+    // Calculamos quanto tempo já passou desde o startDate
+    const timeElapsedInSeconds = Math.floor(
+      (Date.now() - activeTask.startDate) / 1000
+    );
+
+    const totalDurationInSeconds = activeTask.duration * 60;
+    const remainingSeconds = totalDurationInSeconds - timeElapsedInSeconds;
+
+    // Enviamos os segundos restantes de volta para a tela (TaskContextProvider)
+    self.postMessage(remainingSeconds);
+
+    // Se zerou, para o relógio interno
+    if (remainingSeconds <= 0) {
+      clearInterval(intervalId);
+      intervalId = null;
+    }
+  }, 1000); // Roda a cada 1 segundo (1000ms)
 };

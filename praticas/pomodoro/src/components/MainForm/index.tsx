@@ -1,15 +1,18 @@
-import { useRef } from 'react';
 import { PlayCircleIcon, StopCircleIcon } from 'lucide-react';
 import { Cycles } from '../Cycles';
-import { Tips } from '../Tips';
 import { DefaultButton } from '../DefaultButton';
 import { DefaultInput } from '../DefaultInput';
-import { useTaskContext } from '../../contexts/TaskContext/useTaskContext';
+import { useRef } from 'react';
+import type { TaskModel } from '../../models/TaskModel';
+import { useContext } from 'react';
+import { TaskContext } from '../../contexts/TaskContext/TaskContext';
+
+const useTaskContext = () => useContext(TaskContext);
 import { getNextCycle } from '../../utils/getNextCycle';
 import { getNextCycleType } from '../../utils/getNextCycleType';
 import { TaskActionTypes } from '../../contexts/TaskContext/TaskActions';
-import { TimerWorkerManager } from '../../workers/TimerWorkerManager'; // Importação do Manager
-import type { TaskModel } from '../../models/TaskModel';
+import { Tips } from '../Tips';
+import { showMessage } from '../../adapters/showMessage';
 
 export function MainForm() {
   const { state, dispatch } = useTaskContext();
@@ -17,13 +20,14 @@ export function MainForm() {
 
   function handleCreateNewTask(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    showMessage.dismiss(); // Limpa toasts antigos antes de mostrar o novo
 
     if (taskNameInput.current === null) return;
 
     const taskName = taskNameInput.current.value.trim();
 
     if (!taskName) {
-      alert('Digite o nome da tarefa');
+      showMessage.warn('Digite o nome da tarefa'); // Aqui era um alert!
       return;
     }
 
@@ -33,50 +37,31 @@ export function MainForm() {
     const newTask: TaskModel = {
       id: Date.now().toString(),
       name: taskName,
-      startDate: new Date(),
+      startDate: Date.now(),
       completeDate: null,
       interruptDate: null,
       duration: state.config[nextCyleType],
       type: nextCyleType,
     };
 
-    // 1. Atualiza o Reducer
     dispatch({ type: TaskActionTypes.START_TASK, payload: newTask });
-
-    // 2. USO DO SINGLETON (Prática 57)
-    // Em vez de 'new Worker', pedimos a instância única para o Manager
-    const timerWorkerManager = TimerWorkerManager.getInstance();
-
-    // Testes de comunicação
-    timerWorkerManager.postMessage('FAVOR');
-    timerWorkerManager.postMessage('FALA_OI');
-    timerWorkerManager.postMessage('BLALBLA');
-    timerWorkerManager.postMessage('FECHAR');
-
-    timerWorkerManager.onmessage(event => {
-      console.log('PRINCIPAL recebeu via Manager:', event.data);
-    });
-
-    taskNameInput.current.value = '';
+    showMessage.success('Tarefa iniciada'); // Toast de sucesso!
   }
 
   function handleInterruptTask() {
-    if (!state.activeTask) {
-      return;
-    }
-    dispatch({ type: TaskActionTypes.INTERRUPT_TASK, payload: state.activeTask });
-    
-    // Opcional: interromper o worker imediatamente ao clicar em Stop
-    TimerWorkerManager.getInstance().terminate();
+    showMessage.dismiss();
+    showMessage.error('Tarefa interrompida!'); // Toast de erro!
+    dispatch({ type: TaskActionTypes.INTERRUPT_TASK });
   }
 
   return (
-    <form onSubmit={handleCreateNewTask} className='form'>
+    <form onSubmit={handleCreateNewTask} className='form' action=''>
       <div className='formRow'>
         <DefaultInput
           labelText='task'
           id='meuInput'
-          placeholder='Qual tarefa vamos focar agora?'
+          type='text'
+          placeholder='Digite algo'
           ref={taskNameInput}
           disabled={!!state.activeTask}
         />
@@ -104,13 +89,13 @@ export function MainForm() {
 
         {!!state.activeTask && (
           <DefaultButton
-            key="botao_stop_form"
             aria-label='Interromper tarefa atual'
             title='Interromper tarefa atual'
             type='button'
             color='red'
             icon={<StopCircleIcon />}
             onClick={handleInterruptTask}
+            key='botao_button'
           />
         )}
       </div>

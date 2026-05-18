@@ -2,8 +2,8 @@ import { useEffect } from 'react';
 import { Container } from '../../components/Container';
 import { GenericHtml } from '../../components/GenericHtml';
 import { Heading } from '../../components/Heading';
-
 import { MainTemplate } from '../../components/templates/MainTemplate';
+import { RouterLink } from '../../components/RouterLink'; // 1. Importa o wrapper de navegação
 
 export function NotFound() {
   useEffect(() => {
@@ -22,8 +22,10 @@ export function NotFound() {
           </p>
           <p>
             Mas calma, você não está perdido no espaço (ainda). Dá pra voltar em
-            segurança para a <a href='/'>página principal</a> ou{' '}
-            <a href='/history'>para o histórico</a> — ou pode ficar por aqui e
+            segurança para a {/* 2. Troca o <a> por <RouterLink> */}
+            <RouterLink href='/'>página principal</RouterLink> ou{' '}
+            {/* 3. Troca o <a> por <RouterLink> e adiciona a barra no final */}
+            <RouterLink href='/history/'>para o histórico</RouterLink> — ou pode ficar por aqui e
             fingir que achou uma página secreta que só os exploradores mais
             legais conseguem acessar. 🧭✨
           </p>
@@ -41,14 +43,3 @@ export function NotFound() {
     </MainTemplate>
   );
 }
-
-
-
-
-
-
-
-
-
-
-

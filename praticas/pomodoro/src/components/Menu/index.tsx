@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import styles from './styles.module.css';
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router';
+import { RouterLink } from '../RouterLink';
 
 type AvailableThemes = 'dark' | 'light';
 
@@ -41,34 +41,34 @@ export function Menu() {
 
   return (
     <nav className={styles.menu}>
-      {/* Aqui trocamos a tag <a> pela tag <Link> e href por to */}
-      <Link
+      <RouterLink
         className={styles.menuLink}
-        to='/'
+        href='/'
         aria-label='Ir para a Home'
         title='Ir para a Home'
       >
         <HouseIcon />
-      </Link>
+      </RouterLink>
 
-      <a
+      <RouterLink
         className={styles.menuLink}
-        href='#'
+        href='/history/'
         aria-label='Ver Histórico'
         title='Ver Histórico'
       >
         <HistoryIcon />
-      </a>
+      </RouterLink>
 
-      <a
+      <RouterLink
         className={styles.menuLink}
-        href='#'
+        href='/settings/'
         aria-label='Configurações'
         title='Configurações'
       >
         <SettingsIcon />
-      </a>
+      </RouterLink>
 
+      {/* O botão de tema continua como <a> porque não é uma rota, é só uma ação na tela */}
       <a
         className={styles.menuLink}
         href='#'

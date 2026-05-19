@@ -1,42 +1,34 @@
-let intervalId = null;
+/* eslint-disable no-restricted-globals */
 
-self.onmessage = function (event) {
-  const state = event.data;
+// 💡 TRUQUE: Começa em 0. O TypeScript entende que é um número e o Babel não quebra!
+let timerId = 0;
 
-  // 1. Se não recebeu o estado ou não tem tarefa ativa, paramos o relógio
+self.addEventListener('message', (e) => {
+  const state = e.data;
+
+  // Se a tarefa não estiver ativa ou sumir, limpa tudo e para
   if (!state || !state.activeTask) {
-    if (intervalId) {
-      clearInterval(intervalId);
-      intervalId = null;
+    if (timerId) {
+      clearInterval(timerId);
+      timerId = 0;
     }
     return;
   }
 
-  // 2. Extraímos a tarefa ativa de forma segura
-  const activeTask = state.activeTask;
+  // Se o timer já está rodando (diferente de 0), ignora para não duplicar
+  if (timerId) return;
 
-  // 3. Limpamos qualquer timer antigo para não duplicar
-  if (intervalId) {
-    clearInterval(intervalId);
-  }
+  let secondsRemaining = state.secondsRemaining;
 
-  // 4. Iniciamos o novo contador
-  intervalId = setInterval(() => {
-    // Calculamos quanto tempo já passou desde o startDate
-    const timeElapsedInSeconds = Math.floor(
-      (Date.now() - activeTask.startDate) / 1000
-    );
+  timerId = setInterval(() => {
+    secondsRemaining--;
+    
+    // Envia os segundos atualizados de volta para o Contexto
+    self.postMessage(secondsRemaining);
 
-    const totalDurationInSeconds = activeTask.duration * 60;
-    const remainingSeconds = totalDurationInSeconds - timeElapsedInSeconds;
-
-    // Enviamos os segundos restantes de volta para a tela (TaskContextProvider)
-    self.postMessage(remainingSeconds);
-
-    // Se zerou, para o relógio interno
-    if (remainingSeconds <= 0) {
-      clearInterval(intervalId);
-      intervalId = null;
+    if (secondsRemaining <= 0) {
+      clearInterval(timerId);
+      timerId = 0;
     }
-  }, 1000); // Roda a cada 1 segundo (1000ms)
-};
+  }, 1000);
+});

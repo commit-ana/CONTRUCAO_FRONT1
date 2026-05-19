@@ -1,33 +1,39 @@
-import TimerWorker from './timerWorker.js?worker';
-import type { TaskStateModel } from '../models/TaskStateModel';
-
-let instance: TimerWorkerManager | null = null;
-
 export class TimerWorkerManager {
-  private worker: Worker;
+  private static instance: TimerWorkerManager;
+  private worker: Worker | null = null;
 
-  private constructor() {
-    this.worker = new TimerWorker();
-  }
+  private constructor() {}
 
-  static getInstance(): TimerWorkerManager {
-    if (!instance) {
-      instance = new TimerWorkerManager();
+  public static getInstance(): TimerWorkerManager {
+    if (!TimerWorkerManager.instance) {
+      TimerWorkerManager.instance = new TimerWorkerManager();
     }
-    return instance;
+    return TimerWorkerManager.instance;
   }
 
-  // Agora tipado com o TaskStateModel
-  postMessage(message: TaskStateModel) {
-    this.worker.postMessage(message);
+  // Garante que se o worker for nulo (ou deletado), um novo será criado
+  private getWorker(): Worker {
+    if (!this.worker) {
+      this.worker = new Worker(
+        new URL('./TimerWorkerManager.ts', import.meta.url),
+        { type: 'module' }
+      );
+    }
+    return this.worker;
   }
 
-  onmessage(cb: (e: MessageEvent) => void) {
-    this.worker.onmessage = cb;
+  public postMessage(message: any): void {
+    this.getWorker().postMessage(message);
   }
 
-  terminate() {
-    this.worker.terminate();
-    instance = null; 
+  public onmessage(callback: (e: MessageEvent) => void): void {
+    this.getWorker().onmessage = callback;
+  }
+
+  public terminate(): void {
+    if (this.worker) {
+      this.worker.terminate();
+      this.worker = null; // ✨ CRUCIAL: Abre espaço para um novo Worker nascer no próximo clique
+    }
   }
 }

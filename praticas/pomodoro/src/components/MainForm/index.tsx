@@ -4,10 +4,7 @@ import { DefaultButton } from '../DefaultButton';
 import { DefaultInput } from '../DefaultInput';
 import { useRef } from 'react';
 import type { TaskModel } from '../../models/TaskModel';
-import { useContext } from 'react';
-import { TaskContext } from '../../contexts/TaskContext/TaskContext';
-
-const useTaskContext = () => useContext(TaskContext);
+import { useTaskContext } from '../../contexts/TaskContext/useTaskContext';
 import { getNextCycle } from '../../utils/getNextCycle';
 import { getNextCycleType } from '../../utils/getNextCycleType';
 import { TaskActionTypes } from '../../contexts/TaskContext/TaskActions';
@@ -17,17 +14,20 @@ import { showMessage } from '../../adapters/showMessage';
 export function MainForm() {
   const { state, dispatch } = useTaskContext();
   const taskNameInput = useRef<HTMLInputElement>(null);
+  
+  // ✨ ATUALIZAÇÃO: Busca o nome do último item do array de tasks
+  const lastTaskName = state.tasks[state.tasks.length - 1]?.name || '';
 
   function handleCreateNewTask(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    showMessage.dismiss(); // Limpa toasts antigos antes de mostrar o novo
+    showMessage.dismiss();
 
     if (taskNameInput.current === null) return;
 
     const taskName = taskNameInput.current.value.trim();
 
     if (!taskName) {
-      showMessage.warn('Digite o nome da tarefa'); // Aqui era um alert!
+      showMessage.warn('Digite o nome da tarefa');
       return;
     }
 
@@ -45,12 +45,12 @@ export function MainForm() {
     };
 
     dispatch({ type: TaskActionTypes.START_TASK, payload: newTask });
-    showMessage.success('Tarefa iniciada'); // Toast de sucesso!
+    showMessage.success('Tarefa iniciada');
   }
 
   function handleInterruptTask() {
     showMessage.dismiss();
-    showMessage.error('Tarefa interrompida!'); // Toast de erro!
+    showMessage.error('Tarefa interrompida!');
     dispatch({ type: TaskActionTypes.INTERRUPT_TASK });
   }
 
@@ -64,6 +64,7 @@ export function MainForm() {
           placeholder='Digite algo'
           ref={taskNameInput}
           disabled={!!state.activeTask}
+          defaultValue={lastTaskName} // ✨ ATUALIZAÇÃO: Preenche automaticamente
         />
       </div>
 

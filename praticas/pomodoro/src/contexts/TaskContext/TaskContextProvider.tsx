@@ -3,10 +3,10 @@ import { initialTaskState } from './initialTaskState';
 import { taskReducer } from './taskReducer';
 import { TaskContext } from './TaskContext';
 import { TaskActionTypes } from './TaskActions';
-import { loadBeep } from '../../utils/loadBeep';
+import { loadBeep } from '../../utils/loadBeep'; // ✨ Mantém a sua função direta de áudio
+import type { TaskStateModel } from '../../models/TaskStateModel';
 
-// 🚀 IMPORTAÇÃO NATIVA DO VITE: O sufixo "?worker" faz a mágica acontecer.
-// O "// @ts-ignore" serve para o TypeScript não reclamar da falta de tipagem do sufixo.
+// 🚀 FIX DA PRÁTICA 66: Importação nativa do Worker via Vite (sem usar o Manager quebrado)
 // @ts-ignore
 import TimerWorker from '../../workers/timerWorker?worker';
 
@@ -15,37 +15,52 @@ type TaskContextProviderProps = {
 };
 
 export function TaskContextProvider({ children }: TaskContextProviderProps) {
-  const [state, dispatch] = useReducer(taskReducer, initialTaskState);
-  const playBeepRef = useRef<ReturnType<typeof loadBeep> | null>(null);
   
-  // Guardamos a instância do Worker controlado pelo Vite
+  // ✨ PASSO 3 (Prática 67): useReducer com Inicialização Preguiçosa (Lazy Init)
+  const [state, dispatch] = useReducer(taskReducer, initialTaskState, () => {
+    const storageState = localStorage.getItem('state');
+
+    if (storageState === null) return initialTaskState;
+
+    try {
+      const parsedStorageState = JSON.parse(storageState) as TaskStateModel;
+
+      // ⚡ REIDRATAÇÃO COM TIMER ZERADO: Devolve o histórico, mas força o app a voltar "parado"
+      return {
+        ...parsedStorageState,
+        activeTask: null,
+        secondsRemaining: 0,
+        formattedSecondsRemaining: '00:00',
+      };
+    } catch (error) {
+      console.error("JSON corrompido no localStorage, resetando estado:", error);
+      return initialTaskState;
+    }
+  });
+
+  // 🚀 FIX DA PRÁTICA 66: Referência estável para controlar o ciclo de vida do Worker
   const workerRef = useRef<Worker | null>(null);
 
-  // 1. Atualiza apenas o título da aba
   useEffect(() => {
-    document.title = `${state.formattedSecondsRemaining} - Chronos Pomodoro`;
-  }, [state.formattedSecondsRemaining]);
-
-  // 2. CONTROLADOR DO WORKER (Com detetive de erros ativado)
-  useEffect(() => {
+    // Se existir uma tarefa em andamento no estado atual do React, controlamos o Worker
     if (state.activeTask) {
       if (!workerRef.current) {
         workerRef.current = new TimerWorker();
 
-        // 🕵️‍♂️ LOG 1: Saber se o Worker foi criado
-        console.log("🚀 Worker criado e ativo no segundo plano!");
-
+        // Escuta o contador estável vindo do segundo plano
         workerRef.current.onmessage = (e) => {
-          // 🕵️‍♂️ LOG 2: Ver se o Worker está enviando os segundos de volta
           console.log("⏱️ Resposta do Worker recebida:", e.data);
-
           const countDownSeconds = e.data;
 
           if (countDownSeconds <= 0) {
-            if (playBeepRef.current) {
-              playBeepRef.current();
-              playBeepRef.current = null;
+            // 🔊 FIX DO ÁUDIO: Dispara o som sem depender de Refs instáveis
+            try {
+              const playBeep = loadBeep();
+              playBeep();
+            } catch (error) {
+              console.error("Erro ao reproduzir o alerta sonoro:", error);
             }
+
             dispatch({ type: TaskActionTypes.COMPLETE_TASK });
             
             if (workerRef.current) {
@@ -59,43 +74,25 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
             });
           }
         };
-
-        // 🚨 O DETETIVE: Força o erro secreto do Worker a aparecer no Inspecionar!
-        workerRef.current.onerror = (error) => {
-          console.error("💥 ERRO OCULTO ENCONTRADO DENTRO DO WORKER:", {
-            mensagem: error.message,
-            arquivo: error.filename,
-            linha: error.lineno
-          });
-        };
       }
 
-      // 🕵️‍♂️ LOG 3: Ver o que estamos mandando para o Worker
-      console.log("📤 Enviando dados atuais para o Worker:", state);
+      // Alimenta o Worker com as informações atuais
       workerRef.current.postMessage(state);
-
     } else {
+      // Se não há tarefa ativa (ou foi parada/concluída), destrói o Worker imediatamente
       if (workerRef.current) {
         workerRef.current.terminate();
         workerRef.current = null;
       }
     }
 
-    return () => {
-      if (workerRef.current) {
-        workerRef.current.terminate();
-        workerRef.current = null;
-      }
-    };
-  }, [state.activeTask]);
-  // 3. Inicializa o som do Beep
-  useEffect(() => {
-    if (state.activeTask && playBeepRef.current === null) {
-      playBeepRef.current = loadBeep();
-    } else if (!state.activeTask) {
-      playBeepRef.current = null;
-    }
-  }, [state.activeTask]);
+    // Sincroniza o título da aba do navegador
+    document.title = `${state.formattedSecondsRemaining} - Chronos Pomodoro`;
+
+    // ✨ PASSO 2 (Prática 67): Salva o estado inteiro no localStorage sempre que mudar!
+    localStorage.setItem('state', JSON.stringify(state));
+
+  }, [state]);
 
   return (
     <TaskContext.Provider value={{ state, dispatch }}>

@@ -4,6 +4,7 @@ import { DefaultButton } from '../../components/DefaultButton';
 import { Heading } from '../../components/Heading';
 import { MainTemplate } from '../../components/templates/MainTemplate';
 import { useTaskContext } from '../../contexts/TaskContext/useTaskContext';
+import { formatDate } from '../../utils/formatDate'; // ✨ Novo Import!
 import styles from './styles.module.css';
 
 export function History() {
@@ -52,7 +53,10 @@ export function History() {
                   <tr key={task.id}>
                     <td>{task.name}</td>
                     <td>{task.duration}min</td>
-                    <td>{new Date(task.startDate).toLocaleString('pt-BR')}</td>
+                    
+                    {/* ✨ PASSO 3: Utilizando a formatação profissional do date-fns */}
+                    <td>{formatDate(task.startDate)}</td>
+                    
                     <td>{statusExibido}</td>
                     <td>{task.type}</td>
                   </tr>

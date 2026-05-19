@@ -3,9 +3,15 @@ import { Container } from '../../components/Container';
 import { DefaultButton } from '../../components/DefaultButton';
 import { Heading } from '../../components/Heading';
 import { MainTemplate } from '../../components/templates/MainTemplate';
+import { useTaskContext } from '../../contexts/TaskContext/useTaskContext';
 import styles from './styles.module.css';
 
 export function History() {
+  const { state } = useTaskContext();
+
+  /** 🔄 Mais recente primeiro: Inverte o array original sem mutá-lo diretamente */
+  const tasksNewestFirst = [...state.tasks].reverse();
+
   return (
     <MainTemplate>
       <Container>
@@ -36,15 +42,19 @@ export function History() {
             </thead>
 
             <tbody>
-              {/* Protótipo visual temporário com 20 linhas simuladas */}
-              {Array.from({ length: 20 }).map((_, index) => {
+              {tasksNewestFirst.map((task) => {
+                // Lógica provisória para exibir o status bruto no debug
+                let statusExibido = 'Em andamento';
+                if (task.completeDate) statusExibido = 'Completa';
+                else if (task.interruptDate) statusExibido = 'Interrompida';
+
                 return (
-                  <tr key={index}>
-                    <td>Estudar</td>
-                    <td>25min</td>
-                    <td>20/04/2025 08:00</td>
-                    <td>Completa</td>
-                    <td>Foco</td>
+                  <tr key={task.id}>
+                    <td>{task.name}</td>
+                    <td>{task.duration}min</td>
+                    <td>{new Date(task.startDate).toLocaleString('pt-BR')}</td>
+                    <td>{statusExibido}</td>
+                    <td>{task.type}</td>
                   </tr>
                 );
               })}

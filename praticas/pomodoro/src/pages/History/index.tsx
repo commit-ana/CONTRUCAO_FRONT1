@@ -6,13 +6,14 @@ import { MainTemplate } from '../../components/templates/MainTemplate';
 import { useTaskContext } from '../../contexts/TaskContext/useTaskContext';
 import { formatDate } from '../../utils/formatDate';
 import { getTaskStatus } from '../../utils/getTaskStatus';
+import { sortTasks } from '../../utils/sortTasks'; // ✨ Novo Import!
 import styles from './styles.module.css';
 
 export function History() {
   const { state } = useTaskContext();
-
-  /** 🔄 Mais recente primeiro: Inverte o array original sem mutá-lo diretamente */
-  const tasksNewestFirst = [...state.tasks].reverse();
+  
+  // ✨ PASSO 2: Ordenação automatizada e segura usando o utilitário robusto
+  const sortedTasks = sortTasks({ tasks: state.tasks });
 
   return (
     <MainTemplate>
@@ -44,8 +45,7 @@ export function History() {
             </thead>
 
             <tbody>
-              {tasksNewestFirst.map((task) => {
-                // ✨ PASSO 1 (Prática 72): Dicionário de tradução dos tipos de tarefa
+              {sortedTasks.map((task) => {
                 const taskTypeDictionary = {
                   workTime: 'Foco',
                   shortBreakTime: 'Descanso curto',
@@ -58,8 +58,6 @@ export function History() {
                     <td>{task.duration}min</td>
                     <td>{formatDate(task.startDate)}</td>
                     <td>{getTaskStatus(task, state.activeTask)}</td>
-                    
-                    {/* ✨ PASSO 2 (Prática 72): Exibe o texto amigável mapeado pelo dicionário */}
                     <td>{taskTypeDictionary[task.type]}</td>
                   </tr>
                 );

@@ -4,27 +4,57 @@ import { DefaultButton } from '../../components/DefaultButton';
 import { DefaultInput } from '../../components/DefaultInput';
 import { Heading } from '../../components/Heading';
 import { MainTemplate } from '../../components/templates/MainTemplate';
-import { useTaskContext } from '../../contexts/TaskContext/useTaskContext'; // ✨ Novo Import!
+import { useTaskContext } from '../../contexts/TaskContext/useTaskContext';
 import { useRef } from 'react';
+import { showMessage } from '../../adapters/showMessage'; // ✨ Novo Import!
 
 export function Settings() {
   const { state } = useTaskContext();
-
-  // ✨ PASSO 1 (Prática 79): Criação das referências para inputs não controlados
   const workTimeInput = useRef<HTMLInputElement>(null);
   const shortBreakTimeInput = useRef<HTMLInputElement>(null);
   const longBreakTimeInput = useRef<HTMLInputElement>(null);
 
-  // ✨ PASSO 2 (Prática 79): Manipulador do envio que captura os dados sob demanda
   function handleSaveSettings(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault(); // Impede o reload indesejado da página
+    e.preventDefault();
+    
+    // ✨ PASSO 1 (Prática 80): Limpa notificações antigas da tela antes de revalidar
+    showMessage.dismiss();
 
-    const workTime = workTimeInput.current?.value;
-    const shortBreakTime = shortBreakTimeInput.current?.value;
-    const longBreakTime = longBreakTimeInput.current?.value;
+    // Matriz para acumular e disparar todos os erros encontrados de uma só vez
+    const formErrors = [];
 
-    // Log temporário para checarmos a captura antes das validações das próximas aulas
-    console.log('Valores capturados:', { workTime, shortBreakTime, longBreakTime });
+    // ✨ PASSO 2 (Prática 80): Conversão explícita para o tipo Number do JS
+    const workTime = Number(workTimeInput.current?.value);
+    const shortBreakTime = Number(shortBreakTimeInput.current?.value);
+    const longBreakTime = Number(longBreakTimeInput.current?.value);
+
+    // --- REGRAS DE VALIDAÇÃO GERAIS E POR FAIXA ---
+    if (isNaN(workTime) || isNaN(shortBreakTime) || isNaN(longBreakTime)) {
+      formErrors.push('Digite apenas números para TODOS os campos');
+    }
+
+    if (workTime < 1 || workTime > 99) {
+      formErrors.push('Digite valores entre 1 e 99 para foco');
+    }
+
+    if (shortBreakTime < 1 || shortBreakTime > 30) {
+      formErrors.push('Digite valores entre 1 e 30 para descanso curto');
+    }
+
+    if (longBreakTime < 1 || longBreakTime > 60) {
+      formErrors.push('Digite valores entre 1 e 60 para descanso longo');
+    }
+
+    // ✨ PASSO 3 (Prática 80): Bloqueio defensivo se houver qualquer erro
+    if (formErrors.length > 0) {
+      formErrors.forEach(error => {
+        showMessage.error(error);
+      });
+      return; // Interrompe o fluxo e não deixa avançar para o salvamento
+    }
+
+    // Ponto de sucesso (onde plugaremos o dispatch na próxima prática)
+    console.log('SALVAR');
   }
 
   return (
@@ -35,19 +65,21 @@ export function Settings() {
 
       <Container>
         <p style={{ textAlign: 'center', fontSize: '1.6rem', color: 'var(--text-default)' }}>
-          Modifique as configurações para tempo de foco, descanso curto e descanso longo.
+          Modifique as configurações para tempo de foco, descanso curto e
+          descanso longo.
         </p>
       </Container>
 
       <Container>
-        {/* ✨ PASSO 3 (Prática 79): Vinculação do evento onSubmit */}
         <form onSubmit={handleSaveSettings} action='' className='form'>
           <div className='formRow'>
+            {/* ✨ PASSO 4 (Prática 80): Adicionado o tipo numérico nativo */}
             <DefaultInput
               id='workTime'
               labelText='Foco'
               ref={workTimeInput}
-              defaultValue={state.config.workTime} // Reidrata com o valor do estado global
+              defaultValue={state.config.workTime}
+              type='number'
             />
           </div>
           <div className='formRow'>
@@ -56,6 +88,7 @@ export function Settings() {
               labelText='Descanso curto'
               ref={shortBreakTimeInput}
               defaultValue={state.config.shortBreakTime}
+              type='number'
             />
           </div>
           <div className='formRow'>
@@ -64,6 +97,7 @@ export function Settings() {
               labelText='Descanso longo'
               ref={longBreakTimeInput}
               defaultValue={state.config.longBreakTime}
+              type='number'
             />
           </div>
           <div className='formRow'>

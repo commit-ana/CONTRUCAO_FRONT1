@@ -38,6 +38,11 @@ export function History() {
     }));
   }, [state.tasks]);
 
+  // ✨ PASSO 2 (Prática 82): Identificação clara da página de histórico
+  useEffect(() => {
+    document.title = 'Histórico - Chronos Pomodoro';
+  }, []);
+
   useEffect(() => {
     if (!confirmClearHistory) return;
 
@@ -45,7 +50,6 @@ export function History() {
     dispatch({ type: TaskActionTypes.RESET_STATE });
   }, [confirmClearHistory, dispatch]);
 
-  // ✨ PASSO 1 (Prática 77): Cleanup do React para fechar o Toast na desmontagem do componente
   useEffect(() => {
     return () => {
       showMessage.dismiss();
@@ -98,22 +102,13 @@ export function History() {
             <table>
               <thead>
                 <tr>
-                  <th
-                    onClick={() => handleSortTasks({ field: 'name' })}
-                    className={styles.thSort}
-                  >
+                  <th onClick={() => handleSortTasks({ field: 'name' })} className={styles.thSort}>
                     Tarefa ↕
                   </th>
-                  <th
-                    onClick={() => handleSortTasks({ field: 'duration' })}
-                    className={styles.thSort}
-                  >
+                  <th onClick={() => handleSortTasks({ field: 'duration' })} className={styles.thSort}>
                     Duração ↕
                   </th>
-                  <th
-                    onClick={() => handleSortTasks({ field: 'startDate' })}
-                    className={styles.thSort}
-                  >
+                  <th onClick={() => handleSortTasks({ field: 'startDate' })} className={styles.thSort}>
                     Data ↕
                   </th>
                   <th>Status</th>

@@ -5,17 +5,20 @@ import { DefaultInput } from '../../components/DefaultInput';
 import { Heading } from '../../components/Heading';
 import { MainTemplate } from '../../components/templates/MainTemplate';
 import { useTaskContext } from '../../contexts/TaskContext/useTaskContext';
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { showMessage } from '../../adapters/showMessage';
 import { TaskActionTypes } from '../../contexts/TaskContext/TaskActions';
 
 export function Settings() {
-  // ✨ PASSO 4 (Prática 81): Desestruturando o método dispatch do contexto global
   const { state, dispatch } = useTaskContext();
-  
   const workTimeInput = useRef<HTMLInputElement>(null);
   const shortBreakTimeInput = useRef<HTMLInputElement>(null);
   const longBreakTimeInput = useRef<HTMLInputElement>(null);
+
+  // ✨ PASSO 3 (Prática 82): Identificação clara da página de configurações
+  useEffect(() => {
+    document.title = 'Configurações - Chronos Pomodoro';
+  }, []);
 
   function handleSaveSettings(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -50,7 +53,6 @@ export function Settings() {
       return;
     }
 
-    // ✨ PASSO 5 (Prática 81): Disparando a nova configuração para atualizar todo o ecossistema
     dispatch({
       type: TaskActionTypes.CHANGE_SETTINGS,
       payload: {
@@ -59,8 +61,7 @@ export function Settings() {
         longBreakTime,
       },
     });
-    
-    showMessage.success('Configurações salvas com sucesso!');
+    showMessage.success('Configurações salvas');
   }
 
   return (

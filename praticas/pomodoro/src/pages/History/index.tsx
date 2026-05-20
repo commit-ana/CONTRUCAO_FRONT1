@@ -4,13 +4,13 @@ import { DefaultButton } from '../../components/DefaultButton';
 import { Heading } from '../../components/Heading';
 import { MainTemplate } from '../../components/templates/MainTemplate';
 import { useTaskContext } from '../../contexts/TaskContext/useTaskContext';
-import { formatDate } from '../../utils/formatDate'; // ✨ Novo Import!
+import { formatDate } from '../../utils/formatDate';
+import { getTaskStatus } from '../../utils/getTaskStatus';
 import styles from './styles.module.css';
 
 export function History() {
   const { state } = useTaskContext();
 
-  /** 🔄 Mais recente primeiro: Inverte o array original sem mutá-lo diretamente */
   const tasksNewestFirst = [...state.tasks].reverse();
 
   return (
@@ -44,20 +44,15 @@ export function History() {
 
             <tbody>
               {tasksNewestFirst.map((task) => {
-                // Lógica provisória para exibir o status bruto no debug
-                let statusExibido = 'Em andamento';
-                if (task.completeDate) statusExibido = 'Completa';
-                else if (task.interruptDate) statusExibido = 'Interrompida';
-
                 return (
                   <tr key={task.id}>
                     <td>{task.name}</td>
                     <td>{task.duration}min</td>
-                    
-                    {/* ✨ PASSO 3: Utilizando a formatação profissional do date-fns */}
                     <td>{formatDate(task.startDate)}</td>
                     
-                    <td>{statusExibido}</td>
+                    {/* ✨ PASSO 2: Exibindo o status real calculado via regra de negócio */}
+                    <td>{getTaskStatus(task, state.activeTask)}</td>
+                    
                     <td>{task.type}</td>
                   </tr>
                 );

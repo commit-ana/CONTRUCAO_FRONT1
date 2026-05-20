@@ -61,7 +61,7 @@ export function taskReducer(
         activeTask: null,
         secondsRemaining: 0,
         formattedSecondsRemaining: '00:00',
-        tasks : state.tasks.map(task => {
+        tasks: state.tasks.map(task => {
           // Marca a data de conclusão na tarefa ativa
           if (state.activeTask && state.activeTask.id === task.id) {
             return { ...task, completeDate: Date.now() };

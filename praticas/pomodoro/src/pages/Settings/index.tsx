@@ -6,29 +6,27 @@ import { Heading } from '../../components/Heading';
 import { MainTemplate } from '../../components/templates/MainTemplate';
 import { useTaskContext } from '../../contexts/TaskContext/useTaskContext';
 import { useRef } from 'react';
-import { showMessage } from '../../adapters/showMessage'; // ✨ Novo Import!
+import { showMessage } from '../../adapters/showMessage';
+import { TaskActionTypes } from '../../contexts/TaskContext/TaskActions';
 
 export function Settings() {
-  const { state } = useTaskContext();
+  // ✨ PASSO 4 (Prática 81): Desestruturando o método dispatch do contexto global
+  const { state, dispatch } = useTaskContext();
+  
   const workTimeInput = useRef<HTMLInputElement>(null);
   const shortBreakTimeInput = useRef<HTMLInputElement>(null);
   const longBreakTimeInput = useRef<HTMLInputElement>(null);
 
   function handleSaveSettings(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    
-    // ✨ PASSO 1 (Prática 80): Limpa notificações antigas da tela antes de revalidar
     showMessage.dismiss();
 
-    // Matriz para acumular e disparar todos os erros encontrados de uma só vez
     const formErrors = [];
 
-    // ✨ PASSO 2 (Prática 80): Conversão explícita para o tipo Number do JS
     const workTime = Number(workTimeInput.current?.value);
     const shortBreakTime = Number(shortBreakTimeInput.current?.value);
     const longBreakTime = Number(longBreakTimeInput.current?.value);
 
-    // --- REGRAS DE VALIDAÇÃO GERAIS E POR FAIXA ---
     if (isNaN(workTime) || isNaN(shortBreakTime) || isNaN(longBreakTime)) {
       formErrors.push('Digite apenas números para TODOS os campos');
     }
@@ -45,16 +43,24 @@ export function Settings() {
       formErrors.push('Digite valores entre 1 e 60 para descanso longo');
     }
 
-    // ✨ PASSO 3 (Prática 80): Bloqueio defensivo se houver qualquer erro
     if (formErrors.length > 0) {
       formErrors.forEach(error => {
         showMessage.error(error);
       });
-      return; // Interrompe o fluxo e não deixa avançar para o salvamento
+      return;
     }
 
-    // Ponto de sucesso (onde plugaremos o dispatch na próxima prática)
-    console.log('SALVAR');
+    // ✨ PASSO 5 (Prática 81): Disparando a nova configuração para atualizar todo o ecossistema
+    dispatch({
+      type: TaskActionTypes.CHANGE_SETTINGS,
+      payload: {
+        workTime,
+        shortBreakTime,
+        longBreakTime,
+      },
+    });
+    
+    showMessage.success('Configurações salvas com sucesso!');
   }
 
   return (
@@ -73,7 +79,6 @@ export function Settings() {
       <Container>
         <form onSubmit={handleSaveSettings} action='' className='form'>
           <div className='formRow'>
-            {/* ✨ PASSO 4 (Prática 80): Adicionado o tipo numérico nativo */}
             <DefaultInput
               id='workTime'
               labelText='Foco'

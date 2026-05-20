@@ -51,12 +51,9 @@ export function taskReducer(
         }),
       };
     }
-    
-    // ✨ PASSO 1 (Prática 75): Zera o estado global retornando as configurações iniciais padrões
     case TaskActionTypes.RESET_STATE: {
       return { ...initialTaskState };
     }
-    
     case TaskActionTypes.COUNT_DOWN: {
       return {
         ...state,
@@ -65,6 +62,11 @@ export function taskReducer(
           action.payload.secondsRemaining,
         ),
       };
+    }
+    
+    // ✨ PASSO 3 (Prática 81): Atualização segura e não mutável das configurações globais
+    case TaskActionTypes.CHANGE_SETTINGS: {
+      return { ...state, config: { ...action.payload } };
     }
   }
 

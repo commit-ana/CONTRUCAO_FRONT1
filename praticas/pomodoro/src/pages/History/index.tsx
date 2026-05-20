@@ -9,13 +9,11 @@ import { getTaskStatus } from '../../utils/getTaskStatus';
 import { sortTasks, type SortTasksOptions } from '../../utils/sortTasks';
 import { useEffect, useState } from 'react';
 import { TaskActionTypes } from '../../contexts/TaskContext/TaskActions';
-import { showMessage } from '../../adapters/showMessage'; // ✨ Importado!
+import { showMessage } from '../../adapters/showMessage';
 import styles from './styles.module.css';
 
 export function History() {
   const { state, dispatch } = useTaskContext();
-  
-  // ✨ PASSO 4 (Prática 76): Flag local para capturar a resposta assíncrona do Toast
   const [confirmClearHistory, setConfirmClearHistory] = useState(false);
   const hasTasks = state.tasks.length > 0;
 
@@ -40,13 +38,19 @@ export function History() {
     }));
   }, [state.tasks]);
 
-  // ✨ PASSO 5 (Prática 76): Efeito colateral que reage à autorização do usuário
   useEffect(() => {
     if (!confirmClearHistory) return;
 
     setConfirmClearHistory(false);
     dispatch({ type: TaskActionTypes.RESET_STATE });
   }, [confirmClearHistory, dispatch]);
+
+  // ✨ PASSO 1 (Prática 77): Cleanup do React para fechar o Toast na desmontagem do componente
+  useEffect(() => {
+    return () => {
+      showMessage.dismiss();
+    };
+  }, []);
 
   function handleSortTasks({ field }: Pick<SortTasksOptions, 'field'>) {
     const newDirection = sortTasksOptions.direction === 'desc' ? 'asc' : 'desc';
@@ -62,10 +66,9 @@ export function History() {
     });
   }
 
-  // ✨ PASSO 6 (Prática 76): Abre o confirm customizado através do adapter
   function handleResetHistory() {
-    showMessage.dismiss(); // Garante a limpeza de diálogos anteriores abertos por engano
-    showMessage.confirm('Tem certeza?', (confirmation) => {
+    showMessage.dismiss();
+    showMessage.confirm('Tem certeza?', confirmation => {
       setConfirmClearHistory(confirmation);
     });
   }

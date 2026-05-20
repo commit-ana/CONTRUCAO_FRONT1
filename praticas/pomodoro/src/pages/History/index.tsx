@@ -1,4 +1,3 @@
-
 import { TrashIcon } from 'lucide-react';
 import { Container } from '../../components/Container';
 import { DefaultButton } from '../../components/DefaultButton';
@@ -10,12 +9,14 @@ import { getTaskStatus } from '../../utils/getTaskStatus';
 import { sortTasks, type SortTasksOptions } from '../../utils/sortTasks';
 import { useEffect, useState } from 'react';
 import { TaskActionTypes } from '../../contexts/TaskContext/TaskActions';
+import { showMessage } from '../../adapters/showMessage'; // ✨ Importado!
 import styles from './styles.module.css';
 
 export function History() {
   const { state, dispatch } = useTaskContext();
   
-  // ✨ PASSO 2 (Prática 75): Controle condicional de dados na tela
+  // ✨ PASSO 4 (Prática 76): Flag local para capturar a resposta assíncrona do Toast
+  const [confirmClearHistory, setConfirmClearHistory] = useState(false);
   const hasTasks = state.tasks.length > 0;
 
   const [sortTasksOptions, setSortTaskOptions] = useState<SortTasksOptions>(
@@ -28,7 +29,6 @@ export function History() {
     },
   );
 
-  // ✨ PASSO 3 (Prática 75): Mantém a ordenação atualizada e sincronizada caso o estado global mude (ex: limpeza)
   useEffect(() => {
     setSortTaskOptions(prevState => ({
       ...prevState,
@@ -39,6 +39,14 @@ export function History() {
       }),
     }));
   }, [state.tasks]);
+
+  // ✨ PASSO 5 (Prática 76): Efeito colateral que reage à autorização do usuário
+  useEffect(() => {
+    if (!confirmClearHistory) return;
+
+    setConfirmClearHistory(false);
+    dispatch({ type: TaskActionTypes.RESET_STATE });
+  }, [confirmClearHistory, dispatch]);
 
   function handleSortTasks({ field }: Pick<SortTasksOptions, 'field'>) {
     const newDirection = sortTasksOptions.direction === 'desc' ? 'asc' : 'desc';
@@ -54,11 +62,12 @@ export function History() {
     });
   }
 
-  // ✨ PASSO 4 (Prática 75): Dispara o reset global somente com a autorização do usuário
+  // ✨ PASSO 6 (Prática 76): Abre o confirm customizado através do adapter
   function handleResetHistory() {
-    if (!window.confirm('Tem certeza que deseja apagar todo o seu histórico de tarefas?')) return;
-
-    dispatch({ type: TaskActionTypes.RESET_STATE });
+    showMessage.dismiss(); // Garante a limpeza de diálogos anteriores abertos por engano
+    showMessage.confirm('Tem certeza?', (confirmation) => {
+      setConfirmClearHistory(confirmation);
+    });
   }
 
   return (
@@ -66,7 +75,6 @@ export function History() {
       <Container>
         <Heading>
           <span>History</span>
-          {/* Só renderiza o botão de apagar se houver o que apagar */}
           {hasTasks && (
             <span className={styles.buttonContainer}>
               <DefaultButton
@@ -82,7 +90,6 @@ export function History() {
       </Container>
 
       <Container>
-        {/* Renderização condicional: Mostra a tabela de histórico se houver tarefas */}
         {hasTasks && (
           <div className={styles.responsiveTable}>
             <table>
@@ -132,8 +139,6 @@ export function History() {
             </table>
           </div>
         )}
-        
-        {/* Renderização condicional: Exibe feedback visual amigável caso o histórico esteja vazio */}
         {!hasTasks && (
           <p style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '1.6rem', color: 'var(--text-default)' }}>
             Ainda não existem tarefas criadas.

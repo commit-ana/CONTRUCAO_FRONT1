@@ -11,6 +11,7 @@ import styles from './styles.module.css';
 export function History() {
   const { state } = useTaskContext();
 
+  /** 🔄 Mais recente primeiro: Inverte o array original sem mutá-lo diretamente */
   const tasksNewestFirst = [...state.tasks].reverse();
 
   return (
@@ -44,16 +45,22 @@ export function History() {
 
             <tbody>
               {tasksNewestFirst.map((task) => {
+                // ✨ PASSO 1 (Prática 72): Dicionário de tradução dos tipos de tarefa
+                const taskTypeDictionary = {
+                  workTime: 'Foco',
+                  shortBreakTime: 'Descanso curto',
+                  longBreakTime: 'Descanso longo',
+                };
+
                 return (
                   <tr key={task.id}>
                     <td>{task.name}</td>
                     <td>{task.duration}min</td>
                     <td>{formatDate(task.startDate)}</td>
-                    
-                    {/* ✨ PASSO 2: Exibindo o status real calculado via regra de negócio */}
                     <td>{getTaskStatus(task, state.activeTask)}</td>
                     
-                    <td>{task.type}</td>
+                    {/* ✨ PASSO 2 (Prática 72): Exibe o texto amigável mapeado pelo dicionário */}
+                    <td>{taskTypeDictionary[task.type]}</td>
                   </tr>
                 );
               })}

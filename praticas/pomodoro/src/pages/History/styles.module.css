@@ -35,3 +35,14 @@
   text-align: left;
   padding: 1.6rem;
 }
+
+/*(Prática 74): Estilos para cabeçalhos clicáveis */
+.thSort {
+  cursor: pointer;
+  transition: all 0.1s ease-in-out;
+  user-select: none; /* Evita que o texto fique a ser selecionado por acidente no clique duplo */
+}
+
+.thSort:hover {
+  filter: brightness(80%);
+}

@@ -6,14 +6,36 @@ import { MainTemplate } from '../../components/templates/MainTemplate';
 import { useTaskContext } from '../../contexts/TaskContext/useTaskContext';
 import { formatDate } from '../../utils/formatDate';
 import { getTaskStatus } from '../../utils/getTaskStatus';
-import { sortTasks } from '../../utils/sortTasks'; // ✨ Novo Import!
+import { sortTasks, type SortTasksOptions } from '../../utils/sortTasks';
+import { useState } from 'react';
 import styles from './styles.module.css';
 
 export function History() {
   const { state } = useTaskContext();
-  
-  // ✨ PASSO 2: Ordenação automatizada e segura usando o utilitário robusto
-  const sortedTasks = sortTasks({ tasks: state.tasks });
+
+  // ✨ PASSO 2 (Prática 74): Estado local para gerir as tarefas ordenadas e a direção ativa
+  const [sortTasksOptions, setSortTaskOptions] = useState<SortTasksOptions>(() => {
+    return {
+      tasks: sortTasks({ tasks: state.tasks }),
+      field: 'startDate',
+      direction: 'desc',
+    };
+  });
+
+  // ✨ PASSO 3 (Prática 74): Função que faz o toggle da direção e reordena os itens
+  function handleSortTasks({ field }: Pick<SortTasksOptions, 'field'>) {
+    const newDirection = sortTasksOptions.direction === 'desc' ? 'asc' : 'desc';
+
+    setSortTaskOptions({
+      tasks: sortTasks({
+        direction: newDirection,
+        tasks: sortTasksOptions.tasks,
+        field,
+      }),
+      direction: newDirection,
+      field,
+    });
+  }
 
   return (
     <MainTemplate>
@@ -36,16 +58,32 @@ export function History() {
           <table>
             <thead>
               <tr>
-                <th>Tarefa</th>
-                <th>Duração</th>
-                <th>Data</th>
+                {/* ✨ PASSO 4 (Prática 74): Eventos de clique adicionados aos cabeçalhos elegíveis */}
+                <th
+                  onClick={() => handleSortTasks({ field: 'name' })}
+                  className={styles.thSort}
+                >
+                  Tarefa ↕
+                </th>
+                <th
+                  onClick={() => handleSortTasks({ field: 'duration' })}
+                  className={styles.thSort}
+                >
+                  Duração ↕
+                </th>
+                <th
+                  onClick={() => handleSortTasks({ field: 'startDate' })}
+                  className={styles.thSort}
+                >
+                  Data ↕
+                </th>
                 <th>Status</th>
                 <th>Tipo</th>
               </tr>
             </thead>
 
             <tbody>
-              {sortedTasks.map((task) => {
+              {sortTasksOptions.tasks.map((task) => {
                 const taskTypeDictionary = {
                   workTime: 'Foco',
                   shortBreakTime: 'Descanso curto',

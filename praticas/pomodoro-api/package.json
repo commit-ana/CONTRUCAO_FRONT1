@@ -1,4 +1,17 @@
 {
+  "name": "pomodoro-api",
+  "version": "1.0.0",
+  "description": "API Backend para o Chronos Pomodoro",
+  "main": "dist/server.js",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "prisma:migrate": "prisma migrate dev"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
   "dependencies": {
     "@prisma/client": "^7.8.0",
     "cors": "^2.8.6",

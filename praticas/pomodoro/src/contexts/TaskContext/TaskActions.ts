@@ -7,7 +7,8 @@ export const TaskActionTypes = {
   RESET_STATE: 'RESET_STATE',
   COUNT_DOWN: 'COUNT_DOWN',
   COMPLETE_TASK: 'COMPLETE_TASK',
-  CHANGE_SETTINGS: 'CHANGE_SETTINGS', // ✨ PASSO 1 (Prática 81): Nova action registrada
+  CHANGE_SETTINGS: 'CHANGE_SETTINGS',
+  LOAD_TASKS: 'LOAD_TASKS',
 } as const;
 
 export type TaskActionTypes =
@@ -15,29 +16,26 @@ export type TaskActionTypes =
 
 export type TaskActionsWithPayload =
   | {
-    type: typeof TaskActionTypes.START_TASK;
-    payload: TaskModel;
-  }
+      type: typeof TaskActionTypes.START_TASK;
+      payload: TaskModel;
+    }
   | {
-    type: typeof TaskActionTypes.COUNT_DOWN;
-    payload: { secondsRemaining: number };
-  }
+      type: typeof TaskActionTypes.COUNT_DOWN;
+      payload: { secondsRemaining: number };
+    }
   | {
-    // ✨ PASSO 2 (Prática 81): Tipagem estrita do payload acoplada ao modelo de configuração
-    type: typeof TaskActionTypes.CHANGE_SETTINGS;
-    payload: TaskStateModel['config'];
-  };
+      type: typeof TaskActionTypes.CHANGE_SETTINGS;
+      payload: TaskStateModel['config'];
+    }
+  | {
+      type: typeof TaskActionTypes.LOAD_TASKS;
+      payload: TaskModel[];
+    };
 
 export type TaskActionsWithoutPayload =
-  | {
-    type: typeof TaskActionTypes.RESET_STATE;
-  }
-  | {
-    type: typeof TaskActionTypes.INTERRUPT_TASK;
-  }
-  | {
-    type: typeof TaskActionTypes.COMPLETE_TASK;
-  };
+  | { type: typeof TaskActionTypes.RESET_STATE }
+  | { type: typeof TaskActionTypes.INTERRUPT_TASK }
+  | { type: typeof TaskActionTypes.COMPLETE_TASK };
 
 export type TaskActionModel =
   | TaskActionsWithPayload

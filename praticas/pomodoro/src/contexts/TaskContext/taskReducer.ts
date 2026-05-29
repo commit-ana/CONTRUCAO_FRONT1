@@ -63,10 +63,11 @@ export function taskReducer(
         ),
       };
     }
-    
-    // ✨ PASSO 3 (Prática 81): Atualização segura e não mutável das configurações globais
     case TaskActionTypes.CHANGE_SETTINGS: {
       return { ...state, config: { ...action.payload } };
+    }
+    case TaskActionTypes.LOAD_TASKS: {
+      return { ...state, tasks: action.payload };
     }
   }
 

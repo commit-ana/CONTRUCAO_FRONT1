@@ -5,19 +5,20 @@ import { DefaultInput } from '../../components/DefaultInput';
 import { Heading } from '../../components/Heading';
 import { MainTemplate } from '../../components/templates/MainTemplate';
 import { useTaskContext } from '../../contexts/TaskContext/useTaskContext';
-import { useRef } from 'react';
+import { useRef, useState } from 'react'; // ✅ useState adicionado
 import { showMessage } from '../../adapters/showMessage';
 import { TaskActionTypes } from '../../contexts/TaskContext/TaskActions';
+import { saveSettings } from '../../services/api';
 
 export function Settings() {
-  // ✨ PASSO 4 (Prática 81): Desestruturando o método dispatch do contexto global
   const { state, dispatch } = useTaskContext();
-  
+  const [isSaving, setIsSaving] = useState(false); // ✅
+
   const workTimeInput = useRef<HTMLInputElement>(null);
   const shortBreakTimeInput = useRef<HTMLInputElement>(null);
   const longBreakTimeInput = useRef<HTMLInputElement>(null);
 
-  function handleSaveSettings(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSaveSettings(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     showMessage.dismiss();
 
@@ -44,22 +45,26 @@ export function Settings() {
     }
 
     if (formErrors.length > 0) {
-      formErrors.forEach(error => {
-        showMessage.error(error);
-      });
+      formErrors.forEach(error => showMessage.error(error));
       return;
     }
 
-    // ✨ PASSO 5 (Prática 81): Disparando a nova configuração para atualizar todo o ecossistema
+    setIsSaving(true); // ✅ inicia o loading
+    try {
+      await saveSettings({ workTime, shortBreakTime, longBreakTime });
+    } catch (err) {
+      console.error('Erro ao salvar settings na API:', err);
+      showMessage.error('Erro ao salvar no servidor. Tente novamente.');
+      setIsSaving(false); // ✅ encerra o loading mesmo com erro
+      return;
+    }
+    setIsSaving(false); // ✅ encerra o loading
+
     dispatch({
       type: TaskActionTypes.CHANGE_SETTINGS,
-      payload: {
-        workTime,
-        shortBreakTime,
-        longBreakTime,
-      },
+      payload: { workTime, shortBreakTime, longBreakTime },
     });
-    
+
     showMessage.success('Configurações salvas com sucesso!');
   }
 
@@ -109,7 +114,8 @@ export function Settings() {
             <DefaultButton
               icon={<SaveIcon />}
               aria-label='Salvar configurações'
-              title='Salvar configurações'
+              title={isSaving ? 'Salvando...' : 'Salvar configurações'} // ✅
+              disabled={isSaving} // ✅ desativa o botão enquanto salva
             />
           </div>
         </form>

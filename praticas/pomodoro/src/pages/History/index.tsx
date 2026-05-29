@@ -10,21 +10,21 @@ import { sortTasks, type SortTasksOptions } from '../../utils/sortTasks';
 import { useEffect, useState } from 'react';
 import { TaskActionTypes } from '../../contexts/TaskContext/TaskActions';
 import { showMessage } from '../../adapters/showMessage';
+import { deleteTasks } from '../../services/api';
 import styles from './styles.module.css';
 
 export function History() {
   const { state, dispatch } = useTaskContext();
   const [confirmClearHistory, setConfirmClearHistory] = useState(false);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true); // ✅
   const hasTasks = state.tasks.length > 0;
 
   const [sortTasksOptions, setSortTaskOptions] = useState<SortTasksOptions>(
-    () => {
-      return {
-        tasks: sortTasks({ tasks: state.tasks }),
-        field: 'startDate',
-        direction: 'desc',
-      };
-    },
+    () => ({
+      tasks: sortTasks({ tasks: state.tasks }),
+      field: 'startDate',
+      direction: 'desc',
+    }),
   );
 
   useEffect(() => {
@@ -36,31 +36,33 @@ export function History() {
         field: prevState.field,
       }),
     }));
+    setIsLoadingHistory(false); // ✅ quando as tasks chegam, para o loading
   }, [state.tasks]);
 
   useEffect(() => {
     if (!confirmClearHistory) return;
 
     setConfirmClearHistory(false);
-    dispatch({ type: TaskActionTypes.RESET_STATE });
+
+    deleteTasks()
+      .then(() => {
+        dispatch({ type: TaskActionTypes.RESET_STATE });
+      })
+      .catch((err) => {
+        console.error('Erro ao deletar histórico na API:', err);
+        showMessage.error('Erro ao limpar histórico. Tente novamente.'); // ✅
+      });
+
   }, [confirmClearHistory, dispatch]);
 
-  // ✨ PASSO 1 (Prática 77): Cleanup do React para fechar o Toast na desmontagem do componente
   useEffect(() => {
-    return () => {
-      showMessage.dismiss();
-    };
+    return () => { showMessage.dismiss(); };
   }, []);
 
   function handleSortTasks({ field }: Pick<SortTasksOptions, 'field'>) {
     const newDirection = sortTasksOptions.direction === 'desc' ? 'asc' : 'desc';
-
     setSortTaskOptions({
-      tasks: sortTasks({
-        direction: newDirection,
-        tasks: sortTasksOptions.tasks,
-        field,
-      }),
+      tasks: sortTasks({ direction: newDirection, tasks: sortTasksOptions.tasks, field }),
       direction: newDirection,
       field,
     });
@@ -93,37 +95,27 @@ export function History() {
       </Container>
 
       <Container>
-        {hasTasks && (
+        {isLoadingHistory && ( // ✅
+          <p style={{ textAlign: 'center', fontSize: '1.6rem', color: 'var(--text-default)' }}>
+            Carregando histórico...
+          </p>
+        )}
+
+        {!isLoadingHistory && hasTasks && (
           <div className={styles.responsiveTable}>
             <table>
               <thead>
                 <tr>
-                  <th
-                    onClick={() => handleSortTasks({ field: 'name' })}
-                    className={styles.thSort}
-                  >
-                    Tarefa ↕
-                  </th>
-                  <th
-                    onClick={() => handleSortTasks({ field: 'duration' })}
-                    className={styles.thSort}
-                  >
-                    Duração ↕
-                  </th>
-                  <th
-                    onClick={() => handleSortTasks({ field: 'startDate' })}
-                    className={styles.thSort}
-                  >
-                    Data ↕
-                  </th>
+                  <th onClick={() => handleSortTasks({ field: 'name' })} className={styles.thSort}>Tarefa ↕</th>
+                  <th onClick={() => handleSortTasks({ field: 'duration' })} className={styles.thSort}>Duração ↕</th>
+                  <th onClick={() => handleSortTasks({ field: 'startDate' })} className={styles.thSort}>Data ↕</th>
                   <th>Status</th>
                   <th>Tipo</th>
                 </tr>
               </thead>
-
               <tbody>
                 {sortTasksOptions.tasks.map(task => {
-                  const taskTypeDictionary = {
+                  const taskTypeDictionary: Record<string, string> = {
                     workTime: 'Foco',
                     shortBreakTime: 'Descanso curto',
                     longBreakTime: 'Descanso longo',
@@ -142,7 +134,8 @@ export function History() {
             </table>
           </div>
         )}
-        {!hasTasks && (
+
+        {!isLoadingHistory && !hasTasks && ( // ✅
           <p style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '1.6rem', color: 'var(--text-default)' }}>
             Ainda não existem tarefas criadas.
           </p>

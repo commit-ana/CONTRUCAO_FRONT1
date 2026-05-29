@@ -3,10 +3,9 @@ import { initialTaskState } from './initialTaskState';
 import { taskReducer } from './taskReducer';
 import { TaskContext } from './TaskContext';
 import { TaskActionTypes } from './TaskActions';
-import { loadBeep } from '../../utils/loadBeep'; // ✨ Mantém a sua função direta de áudio
-import type { TaskStateModel } from '../../models/TaskStateModel';
+import { loadBeep } from '../../utils/loadBeep';
+import { getSettings, getTasks, completeTask } from '../../services/api';
 
-// 🚀 FIX DA PRÁTICA 66: Importação nativa do Worker via Vite (sem usar o Manager quebrado)
 // @ts-ignore
 import TimerWorker from '../../workers/timerWorker?worker';
 
@@ -15,54 +14,67 @@ type TaskContextProviderProps = {
 };
 
 export function TaskContextProvider({ children }: TaskContextProviderProps) {
-  
-  // ✨ PASSO 3 (Prática 67): useReducer com Inicialização Preguiçosa (Lazy Init)
-  const [state, dispatch] = useReducer(taskReducer, initialTaskState, () => {
-    const storageState = localStorage.getItem('state');
 
-    if (storageState === null) return initialTaskState;
-
-    try {
-      const parsedStorageState = JSON.parse(storageState) as TaskStateModel;
-
-      // ⚡ REIDRATAÇÃO COM TIMER ZERADO: Devolve o histórico, mas força o app a voltar "parado"
-      return {
-        ...parsedStorageState,
-        activeTask: null,
-        secondsRemaining: 0,
-        formattedSecondsRemaining: '00:00',
-      };
-    } catch (error) {
-      console.error("JSON corrompido no localStorage, resetando estado:", error);
-      return initialTaskState;
-    }
-  });
-
-  // 🚀 FIX DA PRÁTICA 66: Referência estável para controlar o ciclo de vida do Worker
+  const [state, dispatch] = useReducer(taskReducer, initialTaskState);
   const workerRef = useRef<Worker | null>(null);
 
+  // Carrega settings uma vez + tasks com polling a cada 5 segundos
   useEffect(() => {
-    // Se existir uma tarefa em andamento no estado atual do React, controlamos o Worker
+    getSettings()
+      .then((data) => {
+        dispatch({
+          type: TaskActionTypes.CHANGE_SETTINGS,
+          payload: {
+            workTime: data.workTime,
+            shortBreakTime: data.shortBreakTime,
+            longBreakTime: data.longBreakTime,
+          },
+        });
+      })
+      .catch((err) => console.error('Erro ao carregar settings:', err));
+
+    function fetchTasks() {
+      getTasks()
+        .then((tasks) => {
+          const parsed = tasks.map((t: any) => ({
+            ...t,
+            startDate: Number(t.startDate),
+            completeDate: t.completeDate ? Number(t.completeDate) : null,
+            interruptDate: t.interruptDate ? Number(t.interruptDate) : null,
+          }));
+          dispatch({ type: TaskActionTypes.LOAD_TASKS, payload: parsed });
+        })
+        .catch((err) => console.error('Erro ao carregar tasks:', err));
+    }
+
+    fetchTasks();
+
+    const interval = setInterval(fetchTasks, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
     if (state.activeTask) {
       if (!workerRef.current) {
         workerRef.current = new TimerWorker();
 
-        // Escuta o contador estável vindo do segundo plano
-        workerRef.current.onmessage = (e) => {
-          console.log("⏱️ Resposta do Worker recebida:", e.data);
+        workerRef.current.onmessage = (e: MessageEvent) => {
           const countDownSeconds = e.data;
 
           if (countDownSeconds <= 0) {
-            // 🔊 FIX DO ÁUDIO: Dispara o som sem depender de Refs instáveis
             try {
               const playBeep = loadBeep();
               playBeep();
             } catch (error) {
-              console.error("Erro ao reproduzir o alerta sonoro:", error);
+              console.error('Erro ao reproduzir o alerta sonoro:', error);
             }
 
+            completeTask(state.activeTask!.id, Date.now())
+              .catch((err) => console.error('Erro ao completar task:', err));
+
             dispatch({ type: TaskActionTypes.COMPLETE_TASK });
-            
+
             if (workerRef.current) {
               workerRef.current.terminate();
               workerRef.current = null;
@@ -76,21 +88,15 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
         };
       }
 
-      // Alimenta o Worker com as informações atuais
       workerRef.current.postMessage(state);
     } else {
-      // Se não há tarefa ativa (ou foi parada/concluída), destrói o Worker imediatamente
       if (workerRef.current) {
         workerRef.current.terminate();
         workerRef.current = null;
       }
     }
 
-    // Sincroniza o título da aba do navegador
     document.title = `${state.formattedSecondsRemaining} - Chronos Pomodoro`;
-
-    // ✨ PASSO 2 (Prática 67): Salva o estado inteiro no localStorage sempre que mudar!
-    localStorage.setItem('state', JSON.stringify(state));
 
   }, [state]);
 

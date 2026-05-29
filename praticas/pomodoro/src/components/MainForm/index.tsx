@@ -10,15 +10,15 @@ import { getNextCycleType } from '../../utils/getNextCycleType';
 import { TaskActionTypes } from '../../contexts/TaskContext/TaskActions';
 import { Tips } from '../Tips';
 import { showMessage } from '../../adapters/showMessage';
+import { createTask, interruptTask } from '../../services/api';
 
 export function MainForm() {
   const { state, dispatch } = useTaskContext();
   const taskNameInput = useRef<HTMLInputElement>(null);
-  
-  // ✨ ATUALIZAÇÃO: Busca o nome do último item do array de tasks
+
   const lastTaskName = state.tasks[state.tasks.length - 1]?.name || '';
 
-  function handleCreateNewTask(event: React.FormEvent<HTMLFormElement>) {
+  async function handleCreateNewTask(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     showMessage.dismiss();
 
@@ -44,13 +44,35 @@ export function MainForm() {
       type: nextCyleType,
     };
 
+    try {
+      await createTask({
+        id: newTask.id,
+        name: newTask.name,
+        duration: newTask.duration,
+        type: newTask.type,
+        startDate: Number(newTask.startDate),
+      });
+    } catch (err) {
+      showMessage.error('Erro ao conectar com o servidor. Tente novamente.');
+      return;
+    }
+
     dispatch({ type: TaskActionTypes.START_TASK, payload: newTask });
     showMessage.success('Tarefa iniciada');
   }
 
-  function handleInterruptTask() {
+  async function handleInterruptTask() {
     showMessage.dismiss();
     showMessage.error('Tarefa interrompida!');
+
+    if (state.activeTask) {
+      try {
+        await interruptTask(state.activeTask.id, Date.now());
+      } catch (err) {
+        showMessage.error('Erro ao conectar com o servidor. Tente novamente.');
+      }
+    }
+
     dispatch({ type: TaskActionTypes.INTERRUPT_TASK });
   }
 
@@ -64,7 +86,7 @@ export function MainForm() {
           placeholder='Digite algo'
           ref={taskNameInput}
           disabled={!!state.activeTask}
-          defaultValue={lastTaskName} // ✨ ATUALIZAÇÃO: Preenche automaticamente
+          defaultValue={lastTaskName}
         />
       </div>
 

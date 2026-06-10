@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    /* Definições de Ambiente e Execução */
+    "target": "es2022",
+    "module": "commonjs",                     /* Padrão do Express para gerenciar imports sem quebrar */
+    "lib": ["es2022"],
+
+    /* Configurações de Pastas e Layout */
+    "rootDir": "./",                          /* Raiz engloba o src/ e o prisma.config.ts */
+    "outDir": "./dist",
+    "sourceMap": true,
+
+    /* Checagens Estritas */
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "skipLibCheck": true,                     /* Evita conflitos de tipos em bibliotecas externas */
+    "forceConsistentCasingInFileNames": true,
+    "esModuleInterop": true                   /* Permite importar Express usando a sintaxe clássica 'import' */
+  },
+  "include": ["src/**/*", "prisma.config.ts"] /* Inclui seu código e a config do Prisma 7 */
+}

@@ -4,10 +4,13 @@ import {
   MoonIcon,
   SettingsIcon,
   SunIcon,
+  LogOutIcon,
 } from 'lucide-react';
 import styles from './styles.module.css';
 import { useState, useEffect } from 'react';
 import { RouterLink } from '../RouterLink';
+import { useAuthContext } from '../../contexts/AuthContext/useAuthContext';
+import { useNavigate } from 'react-router';
 
 type AvailableThemes = 'dark' | 'light';
 
@@ -18,6 +21,9 @@ export function Menu() {
     return storageTheme;
   });
 
+  const { logout } = useAuthContext();
+  const navigate = useNavigate();
+
   const nextThemeIcon = {
     dark: <SunIcon />,
     light: <MoonIcon />,
@@ -27,11 +33,18 @@ export function Menu() {
     event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
   ) {
     event.preventDefault();
-
     setTheme(prevTheme => {
       const nextTheme = prevTheme === 'dark' ? 'light' : 'dark';
       return nextTheme;
     });
+  }
+
+  function handleLogout(
+    event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
+  ) {
+    event.preventDefault();
+    logout();
+    navigate('/login');
   }
 
   useEffect(() => {
@@ -68,7 +81,6 @@ export function Menu() {
         <SettingsIcon />
       </RouterLink>
 
-      {/* O botão de tema continua como <a> porque não é uma rota, é só uma ação na tela */}
       <a
         className={styles.menuLink}
         href='#'
@@ -77,6 +89,16 @@ export function Menu() {
         onClick={handleThemeChange}
       >
         {nextThemeIcon[theme]}
+      </a>
+
+       <a
+        className={styles.menuLink}
+        href='#'
+        aria-label='Sair'
+        title='Sair'
+        onClick={handleLogout}
+      >
+        <LogOutIcon />
       </a>
     </nav>
   );

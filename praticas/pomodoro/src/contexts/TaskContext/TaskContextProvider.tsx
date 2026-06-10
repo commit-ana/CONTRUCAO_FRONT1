@@ -5,6 +5,7 @@ import { TaskContext } from './TaskContext';
 import { TaskActionTypes } from './TaskActions';
 import { loadBeep } from '../../utils/loadBeep';
 import { getSettings, getTasks, completeTask } from '../../services/api';
+import { useAuthContext } from '../AuthContext/useAuthContext';
 
 // @ts-ignore
 import TimerWorker from '../../workers/timerWorker?worker';
@@ -14,12 +15,14 @@ type TaskContextProviderProps = {
 };
 
 export function TaskContextProvider({ children }: TaskContextProviderProps) {
-
   const [state, dispatch] = useReducer(taskReducer, initialTaskState);
   const workerRef = useRef<Worker | null>(null);
+  const { isAuthenticated } = useAuthContext();
 
-  // Carrega settings uma vez + tasks com polling a cada 5 segundos
+  // Só carrega da API se estiver autenticado
   useEffect(() => {
+    if (!isAuthenticated) return;
+
     getSettings()
       .then((data) => {
         dispatch({
@@ -42,17 +45,24 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
             completeDate: t.completeDate ? Number(t.completeDate) : null,
             interruptDate: t.interruptDate ? Number(t.interruptDate) : null,
           }));
+
+          const activeFromApi = parsed.find(
+            (t: any) => !t.completeDate && !t.interruptDate
+          );
+
           dispatch({ type: TaskActionTypes.LOAD_TASKS, payload: parsed });
+
+          if (activeFromApi) {
+            dispatch({ type: TaskActionTypes.START_TASK, payload: activeFromApi });
+          }
         })
         .catch((err) => console.error('Erro ao carregar tasks:', err));
     }
 
     fetchTasks();
-
     const interval = setInterval(fetchTasks, 5000);
-
     return () => clearInterval(interval);
-  }, []);
+  }, [isAuthenticated]); // ← recarrega quando o estado de autenticação muda
 
   useEffect(() => {
     if (state.activeTask) {
@@ -97,7 +107,6 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
     }
 
     document.title = `${state.formattedSecondsRemaining} - Chronos Pomodoro`;
-
   }, [state]);
 
   return (

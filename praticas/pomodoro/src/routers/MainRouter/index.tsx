@@ -4,7 +4,12 @@ import { NotFound } from '../../pages/NotFound';
 import { Home } from '../../pages/Home';
 import { useEffect } from 'react';
 import { History } from '../../pages/History';
-import { Settings } from '../../pages/Settings'; 
+import { Settings } from '../../pages/Settings';
+import { Login } from '../../pages/Login';
+import { Register } from '../../pages/Register';
+import { ForgotPassword } from '../../pages/ForgotPassword';
+import { ResetPassword } from '../../pages/ResetPassword';
+import { PrivateRoute } from '../../components/PrivateRoute';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -20,10 +25,14 @@ export function MainRouter() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path='/' element={<Home />} />
-        <Route path='/history/' element={<History />} />
-        <Route path='/settings/' element={<Settings />} /> 
-        <Route path='/about-pomodoro/' element={<AboutPomodoro />} />
+        <Route path='/login' element={<Login />} />
+        <Route path='/register' element={<Register />} />
+        <Route path='/forgot-password' element={<ForgotPassword />} />
+        <Route path='/reset-password' element={<ResetPassword />} />
+        <Route path='/' element={<PrivateRoute><Home /></PrivateRoute>} />
+        <Route path='/history/' element={<PrivateRoute><History /></PrivateRoute>} />
+        <Route path='/settings/' element={<PrivateRoute><Settings /></PrivateRoute>} />
+        <Route path='/about-pomodoro/' element={<PrivateRoute><AboutPomodoro /></PrivateRoute>} />
         <Route path='*' element={<NotFound />} />
       </Routes>
       <ScrollToTop />
